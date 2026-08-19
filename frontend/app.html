@@ -1,0 +1,1966 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreFour</title>
+    <meta name="description" content="Track medications, schedules, and adherence for the whole family.">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            200: '#fecdd3',
+                            300: '#fda4af',
+                            400: '#fb7185',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                            700: '#be123c',
+                            800: '#9f1239',
+                            900: '#881337',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        /* ============================================================ */
+        /* CALENDAR THEME                                               */
+        /* ============================================================ */
+        :root{
+          --page-bg:      transparent;
+          --cell-bg:      rgba(255, 255, 255, 0.05);
+          --cell-lit-bg:  rgba(244, 63, 94, 0.15); /* rose-500 tint */
+          --cell-border:  rgba(255, 255, 255, 0.1);
+          --lit-border:   #f43f5e; /* rose-500 */
+          --glow:         #fda4af; /* rose-300 */
+          --glow-dim:     #f43f5e; /* rose-500 */
+          --text-dim:     rgba(255,255,255,0.4);
+          --text-lit:     #fff1f2; /* rose-50 */
+          --card-bg:      #ffe4e6; /* rose-100 */
+          --card-title:   #881337; /* rose-900 */
+        }
+        
+        #view-calendar.block {
+          display: flex;
+          flex-direction: column;
+        }
+
+        #view-calendar .calendar{
+          width: 100%;
+          max-width: none;
+          height: 100%;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          margin: 0 auto;
+          background: var(--page-bg);
+          border-radius: 12px;
+          padding: 18px;
+          position: relative;
+        }
+
+        #view-calendar .weekdays{
+          display:grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 7px;
+          margin-bottom: 8px;
+        }
+
+        #view-calendar .weekdays div{
+          text-align:left;
+          padding-left: 3px;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.08em;
+          color: var(--text-dim);
+          text-transform: uppercase;
+        }
+
+        #view-calendar .grid{
+          display:grid;
+          grid-template-columns: repeat(7, 1fr);
+          grid-template-rows: repeat(5, 1fr);
+          flex: 1;
+          gap: 7px;
+          position: relative;
+        }
+
+        #view-calendar .day{
+          border-radius: 10px;
+          background: var(--cell-bg);
+          border: 1px solid var(--cell-border);
+          padding: 6px 0 0 7px;
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--text-dim);
+          position: relative;
+          cursor: pointer;
+          overflow: visible;
+          transition: all 0.2s;
+        }
+        #view-calendar .day:hover {
+          background: rgba(255,255,255,0.1);
+        }
+
+        #view-calendar .day.muted{ visibility: hidden; }
+
+        #view-calendar .day-num{ position:relative; z-index:2; pointer-events:none; }
+
+        #view-calendar .day.lit{
+          background: var(--cell-lit-bg);
+          border: 1px solid var(--lit-border);
+          color: var(--text-lit);
+          box-shadow:
+            0 0 12px 0px rgba(244, 63, 94, 0.3),
+            0 0 25px 4px rgba(244, 63, 94, 0.15);
+        }
+
+        #view-calendar .day.lit .surface{
+          position:absolute;
+          inset:0;
+          border-radius:10px;
+          overflow:hidden;
+          z-index:1;
+        }
+
+        #view-calendar .day.lit .surface::before{
+          content:"";
+          position:absolute;
+          left:-20%;
+          right:-20%;
+          bottom:-20%;
+          height:90%;
+          background: radial-gradient(ellipse at bottom, rgba(244,63,94,0.4) 0%, rgba(244,63,94,0.15) 40%, rgba(244,63,94,0) 75%);
+        }
+
+        #view-calendar .glowbar{
+          position:absolute;
+          left: 14%;
+          right: 14%;
+          bottom: 3px;
+          height: 4px;
+          border-radius: 50%;
+          background: var(--glow);
+          z-index: 3;
+          filter: blur(2px);
+          opacity: 0.9;
+          box-shadow:
+            0 0 8px 3px rgba(244,63,94,0.6),
+            0 0 20px 8px rgba(244,63,94,0.3);
+        }
+
+        #view-calendar .day.selected{
+          box-shadow:
+            0 0 0 1.5px rgba(244,63,94,0.8),
+            0 0 20px 4px rgba(244,63,94,0.5);
+        }
+
+        #view-calendar .fab{
+          position:absolute;
+          bottom: 16px;
+          right: 16px;
+          background: linear-gradient(to right, #f43f5e, #800020);
+          color: white;
+          border:none;
+          border-radius: 999px;
+          padding: 10px 20px;
+          font-size: 13px;
+          font-weight: 700;
+          cursor:pointer;
+          box-shadow: 0 10px 24px -6px rgba(0,0,0,0.5);
+          transition: opacity 0.2s;
+        }
+        #view-calendar .fab:hover{ opacity: 0.9; }
+
+        /* ── Animations ─────────────────────────────────── */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes gentleFloat {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .animate-float {
+            animation: gentleFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        .shimmer-bg {
+            background: linear-gradient(90deg, #f8fafc 0%, #eef2ff 20%, #f8fafc 40%, #f8fafc 100%);
+            background-size: 200% 100%;
+            animation: shimmer 6s ease-in-out infinite;
+        }
+
+        /* ── Focus ring utility ────────────────────────── */
+        .focus-ring:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.2);
+            border-color: #e11d48;
+        }
+
+        /* ── Subtle card hover ─────────────────────────── */
+        .card-hover {
+            transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+        }
+
+        .card-hover:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            border-color: #fecdd3;
+            transform: translateY(-1px);
+        }
+
+        /* ── 3D Flip Custom CSS ────────────────────────── */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Trigger flip based on signup form hidden state via CSS :has() */
+        #auth-container:has(#signup-form:not(.hidden)) #auth-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        /* Ensure forms are always block so backface geometry exists */
+        form#login-form.hidden,
+        form#signup-form.hidden {
+            display: block !important;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        form#login-form:not(.hidden),
+        form#signup-form:not(.hidden) {
+            opacity: 1;
+            pointer-events: auto;
+            transition: opacity 0.3s 0.3s;
+            /* Delay fade in so it happens after flip starts */
+        }
+
+        /* Ensure auth toggle matches glass theme regardless of JS classes */
+        #auth-toggle {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+
+        #auth-toggle button {
+            color: white !important;
+            font-weight: bold !important;
+        }
+
+        #auth-toggle button:hover {
+            text-decoration: underline !important;
+        }
+
+        /* Dashboard overrides for glassmorphism */
+        #schedule-container [class*="text-gray-"],
+        #alerts-container [class*="text-gray-"] {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        #schedule-container .bg-white,
+        #alerts-container .bg-white {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border-color: rgba(255, 255, 255, 0.2) !important;
+        }
+
+        #schedule-container [class*="bg-emerald-"],
+        #schedule-container [class*="bg-amber-"],
+        #schedule-container [class*="bg-blue-"],
+        #schedule-container [class*="bg-indigo-"] {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            color: white !important;
+        }
+
+        #schedule-container button[onclick*="takeMedication"] {
+            background-color: white !important;
+            color: #e11d48 !important;
+        }
+
+        /* 1. Base Container Setup */
+        .auth-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f3f4f6;
+        }
+
+        .sliding-container {
+            background-color: #fff;
+            border-radius: 20px;
+            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            width: 850px;
+            max-width: 100%;
+            min-height: 520px;
+            transform-style: preserve-3d;
+            will-change: transform;
+        }
+
+        /* Anchor the Forms and Force Visibility */
+        .form-container {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            transition: none;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        .sign-in-container {
+            left: 0;
+            width: 50%;
+            z-index: 1;
+        }
+
+        .sign-up-container {
+            left: 50%;
+            width: 50%;
+            z-index: 1;
+        }
+
+        /* 3. The Overlay "Sliding Door" Logic */
+        .overlay-container {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            transition: transform 0.6s ease-in-out;
+            z-index: 100;
+        }
+
+        .sliding-container.right-panel-active .overlay-container {
+            transform: translateX(-100%);
+        }
+
+        .overlay {
+            background: linear-gradient(to right, #f43f5e, #000000);
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: 0 0;
+            color: #FFFFFF;
+            position: relative;
+            left: -100%;
+            height: 100%;
+            width: 200%;
+            transform: translateX(0);
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .sliding-container.right-panel-active .overlay {
+            transform: translateX(50%);
+        }
+
+        .overlay-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 40px;
+            box-sizing: border-box;
+        }
+
+        /* Base state: Show Right, Hide Left */
+        .overlay-left {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .overlay-right {
+            opacity: 1;
+            pointer-events: auto;
+            transition: opacity 0.3s ease-in-out 0.4s;
+            /* Delays fade-in until the curtain covers it */
+        }
+
+        /* Active state: Show Left, Hide Right */
+        .sliding-container.right-panel-active .overlay-left {
+            opacity: 1;
+            pointer-events: auto;
+            transition: opacity 0.3s ease-in-out 0.4s;
+        }
+
+        .sliding-container.right-panel-active .overlay-right {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        /* ── Subscription Toggle ────────────────────────── */
+        .sub-toggle-btn {
+            color: rgba(255,255,255,0.6);
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 13.5px;
+            font-weight: 600;
+            padding: 9px 20px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+        }
+        .sub-toggle-btn.active {
+            background: linear-gradient(to right, #f43f5e, #800020);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-gray-800 antialiased min-h-screen font-sans">
+
+    <!-- ============================================================ -->
+    <!-- SIGN-IN SCREEN                                               -->
+    <!-- ============================================================ -->
+    <div id="view-login" class="auth-wrapper px-4 py-12">
+        <div class="sliding-container animate-fade-in-up" id="auth-sliding-container" data-tilt data-tilt-max="30"
+            data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.8" data-tilt-scale="1.1">
+
+            <!-- Sign Up Form -->
+            <div class="form-container sign-up-container bg-white flex flex-col items-center justify-center p-8">
+                <form id="signup-form" onsubmit="handleSignUp(event)"
+                    class="w-full max-w-sm flex flex-col justify-center">
+                    <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight text-center mb-6">Create Account
+                    </h2>
+
+                    <!-- Sign Up Error -->
+                    <div id="signup-error"
+                        class="hidden mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm font-medium flex items-center space-x-2">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span id="signup-error-text"></span>
+                    </div>
+
+                    <!-- Name -->
+                    <div class="mb-4">
+                        <label for="signup-name" class="block text-sm font-semibold text-gray-700 mb-1.5">Full
+                            name</label>
+                        <input id="signup-name" type="text" required autocomplete="name" placeholder="Jane Doe"
+                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-sm transition-all duration-150">
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-4">
+                        <label for="signup-email" class="block text-sm font-semibold text-gray-700 mb-1.5">Email
+                            address</label>
+                        <input id="signup-email" type="email" required autocomplete="email"
+                            placeholder="jane@family.com"
+                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-sm transition-all duration-150">
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-4">
+                        <label for="signup-password"
+                            class="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
+                        <input id="signup-password" type="password" required autocomplete="new-password"
+                            placeholder="••••••••"
+                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-sm transition-all duration-150">
+                    </div>
+
+                    <!-- Role -->
+                    <div class="mb-6">
+                        <label for="signup-role"
+                            class="block text-sm font-semibold text-gray-700 mb-1.5">Role</label>
+                        <select id="signup-role" required
+                            class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-sm transition-all duration-150">
+                            <option value="patient">Patient</option>
+                            <option value="caregiver">Caregiver</option>
+                        </select>
+                        <input type="hidden" id="signup-family-id" value="1">
+                    </div>
+
+                    <!-- Sign Up Button -->
+                    <button id="signup-btn" type="submit"
+                        class="w-full py-2.5 rounded-lg bg-gradient-to-r from-[#f43f5e] to-[#800020] text-white hover:opacity-90 font-semibold text-sm shadow-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 flex items-center justify-center space-x-2">
+                        <span id="signup-btn-text">Create Account</span>
+                        <svg id="signup-spinner" class="hidden animate-spin h-4 w-4 text-white"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Sign In Form -->
+            <div class="form-container sign-in-container bg-white flex flex-col items-center justify-center p-8">
+                <form id="login-form" onsubmit="handleLogin(event)"
+                    class="w-full max-w-sm flex flex-col justify-center">
+
+                    <div class="flex items-center justify-center space-x-3 mb-6">
+                        <div
+                            class="w-10 h-10 rounded-lg bg-gradient-to-r from-[#f43f5e] to-[#800020] flex items-center justify-center shadow-md">
+                            <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 22 22 2 22"></polygon>
+                                <polyline points="2 12 22 12"></polyline>
+                                <line x1="12" y1="2" x2="12" y2="22"></line>
+                            </svg>
+                        </div>
+                        <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">Sign In</h2>
+                    </div>
+
+                    <!-- Error Banner -->
+                    <div id="login-error"
+                        class="hidden mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm font-medium flex items-center space-x-2">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span id="login-error-text">Invalid credentials. Please try again.</span>
+                    </div>
+
+                    <!-- Success Banner -->
+                    <div id="signup-success"
+                        class="hidden mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-medium flex items-center space-x-2">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span id="signup-success-text">Account created! You can now sign in.</span>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-4">
+                        <label for="login-email" class="block text-sm font-semibold text-gray-700 mb-1.5">Email
+                            address</label>
+                        <input id="login-email" type="email" required autocomplete="email" placeholder="pekky@test.com"
+                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-sm transition-all duration-150">
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-6">
+                        <label for="login-password"
+                            class="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
+                        <input id="login-password" type="password" required autocomplete="current-password"
+                            placeholder="••••••••"
+                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-sm transition-all duration-150">
+                    </div>
+
+                    <!-- Sign In Button -->
+                    <button id="login-btn" type="submit"
+                        class="w-full py-2.5 rounded-lg bg-gradient-to-r from-[#f43f5e] to-[#800020] text-white hover:opacity-90 font-semibold text-sm shadow-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 flex items-center justify-center space-x-2">
+                        <span id="login-btn-text">Sign In</span>
+                        <svg id="login-spinner" class="hidden animate-spin h-4 w-4 text-white"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                    </button>
+
+                    <p id="demo-hint" class="mt-6 text-center text-xs text-gray-500">
+                        Demo: <span class="font-medium text-gray-700">pekky@test.com</span> (patient) · <span
+                            class="font-medium text-gray-700">mom@test.com</span> (caregiver)
+                    </p>
+                </form>
+            </div>
+
+            <!-- Overlay Container -->
+            <div class="overlay-container bg-gradient-to-r from-[#f43f5e] to-black">
+                <div class="overlay-panel overlay-left">
+                    <div
+                        class="h-16 w-16 mb-4 rounded-xl bg-white/20 border border-white/20 flex items-center justify-center">
+                        <svg class="h-8 w-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 22 22 2 22"></polygon>
+                            <polyline points="2 12 22 12"></polyline>
+                            <line x1="12" y1="2" x2="12" y2="22"></line>
+                        </svg>
+                    </div>
+                    <h1 class="font-bold text-3xl mb-2 text-white">Welcome Back!</h1>
+                    <p class="text-sm font-light leading-relaxed mb-6 text-white">To keep connected with us please login
+                        with your personal info</p>
+                    <button id="signInGhost" onclick="toggleAuthMode()"
+                        class="rounded-full bg-transparent border-2 border-white text-white font-bold text-sm py-3 px-12 uppercase transition-transform hover:scale-105 active:scale-95">Sign
+                        In</button>
+                </div>
+                <div class="overlay-panel overlay-right">
+                    <div
+                        class="h-16 w-16 mb-4 rounded-xl bg-white/20 border border-white/20 flex items-center justify-center">
+                        <svg class="h-8 w-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 22 22 2 22"></polygon>
+                            <polyline points="2 12 22 12"></polyline>
+                            <line x1="12" y1="2" x2="12" y2="22"></line>
+                        </svg>
+                    </div>
+                    <h1 class="font-bold text-3xl mb-2 text-white">Hello, Friend!</h1>
+                    <p class="text-sm font-light leading-relaxed mb-6 text-white">Enter your personal details and start
+                        journey with us</p>
+                    <button id="signUpGhost" onclick="toggleAuthMode()"
+                        class="rounded-full bg-transparent border-2 border-white text-white font-bold text-sm py-3 px-12 uppercase transition-transform hover:scale-105 active:scale-95">Sign
+                        Up</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ============================================================ -->
+    <!-- ONBOARDING SCREEN                                            -->
+    <!-- ============================================================ -->
+    <div id="view-onboarding" class="hidden min-h-screen bg-gray-100 flex items-center justify-center px-4 py-12">
+        <div class="w-full max-w-md animate-fade-in-up">
+            <!-- Onboarding Card -->
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+                <!-- Header -->
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r from-[#f43f5e] to-[#800020] mb-4 shadow-lg">
+                        <svg class="h-8 w-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 22 22 2 22"></polygon>
+                            <polyline points="2 12 22 12"></polyline>
+                            <line x1="12" y1="2" x2="12" y2="22"></line>
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Welcome! 👋</h1>
+                    <p class="text-sm text-gray-500 mt-1">Let's set up your household</p>
+                </div>
+
+                <!-- Display Name -->
+                <div class="mb-5">
+                    <label for="onboard-display-name" class="block text-sm font-semibold text-gray-700 mb-1.5">What should we call you?</label>
+                    <input type="text" id="onboard-display-name" placeholder="e.g. Mom, Dad, Pekky" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f43f5e]/40 focus:border-[#f43f5e] focus:bg-white text-sm transition-all duration-150">
+                </div>
+
+                <!-- Family Mode Toggle -->
+                <div class="mb-5">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Family Setup</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" id="onboard-create-btn" onclick="setOnboardMode('create')" class="py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all duration-200 bg-gradient-to-r from-[#f43f5e] to-[#800020] text-white border-transparent shadow-md">
+                            🏠 Create New Family
+                        </button>
+                        <button type="button" id="onboard-join-btn" onclick="setOnboardMode('join')" class="py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all duration-200 bg-white text-gray-600 border-gray-200 hover:border-gray-300">
+                            🤝 Join Existing
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Family Name / Family Code -->
+                <div class="mb-6" id="onboard-family-field">
+                    <label for="onboard-family-name" id="onboard-family-label" class="block text-sm font-semibold text-gray-700 mb-1.5">Family Name</label>
+                    <input type="text" id="onboard-family-name" placeholder="e.g. The Smith Family" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f43f5e]/40 focus:border-[#f43f5e] focus:bg-white text-sm transition-all duration-150">
+                </div>
+
+                <!-- Create Household Button -->
+                <button type="button" id="onboard-submit-btn" onclick="completeOnboarding()" class="w-full py-3 rounded-lg bg-gradient-to-r from-[#f43f5e] to-[#800020] text-white font-bold text-sm shadow-lg hover:shadow-xl hover:opacity-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#f43f5e]/50 focus:ring-offset-2">
+                    ✨ Create Household
+                </button>
+
+                <!-- Logout Link -->
+                <div class="text-center mt-5">
+                    <button type="button" onclick="handleLogout()" class="text-sm text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none">
+                        🚪 Logout / Switch Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <!-- ============================================================ -->
+    <!-- APP SHELL                                                    -->
+    <!-- ============================================================ -->
+    <div id="app-shell" class="hidden h-screen flex bg-gradient-to-r from-[#f43f5e] to-black text-white overflow-hidden">
+
+        <!-- Expandable Sidebar -->
+        <aside class="group w-20 hover:w-64 min-h-screen bg-white/10 backdrop-blur-2xl border-r border-white/25 flex flex-col justify-between py-8 px-4 transition-all duration-300 z-50 relative overflow-hidden" onmouseleave="document.getElementById('familyDropdownMenu').classList.add('hidden')">
+            <!-- Top Section -->
+            <div class="flex flex-col gap-6">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3 px-1">
+                    <div class="w-10 h-10 rounded-xl bg-white/20 border border-white/30 flex-shrink-0 flex items-center justify-center shadow-md">
+                        <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 22 22 2 22"></polygon>
+                            <polyline points="2 12 22 12"></polyline>
+                            <line x1="12" y1="2" x2="12" y2="22"></line>
+                        </svg>
+                    </div>
+                    <span class="font-bold text-white text-xl tracking-tight opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">CoreFour</span>
+                </div>
+                
+                <!-- Dashboard Button -->
+                <button id="nav-dashboard" onclick="switchView('patient')" class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer">
+                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">🏠</div>
+                    <span class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Dashboard</span>
+                </button>
+                
+                <!-- Family Button Container -->
+                <div class="relative mt-2">
+                    <button onclick="document.getElementById('familyDropdownMenu').classList.toggle('hidden')" class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer">
+                        <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">👥</div>
+                        <span class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Family</span>
+                        <svg class="w-4 h-4 text-white/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    
+                    <!-- Dropdown Menu -->
+                    <div id="familyDropdownMenu" class="hidden mt-2 w-full bg-black/90 backdrop-blur-2xl border border-white/25 rounded-xl shadow-2xl overflow-hidden flex-col z-50">
+                        <div class="p-3 text-sm text-white hover:bg-white/20 border-b border-white/10 whitespace-nowrap cursor-pointer font-medium">Pekky (Active)</div>
+                        <div class="p-3 text-sm text-white hover:bg-white/20 border-b border-white/10 whitespace-nowrap cursor-pointer">Mom</div>
+                        <div class="p-3 text-sm text-white hover:bg-white/20 border-b border-white/10 whitespace-nowrap cursor-pointer">Dad</div>
+                        <div class="p-3 text-sm text-gray-300 hover:text-white hover:bg-white/20 font-semibold whitespace-nowrap cursor-pointer">+ Add Member</div>
+                    </div>
+                </div>
+
+                <!-- Calendar Button -->
+                <button id="nav-calendar" onclick="switchView('calendar')" class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer mt-2">
+                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">📅</div>
+                    <span class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Calendar</span>
+                </button>
+
+                <!-- Dummy hidden tabs to not break JS -->
+                <button id="tab-patient" class="hidden"></button>
+                <button id="tab-caregiver" class="hidden"></button>
+            </div>
+
+            <!-- Bottom: Subscription & Logout -->
+            <div class="w-full">
+                <!-- Subscription Button -->
+                <button id="nav-subscription" onclick="switchView('subscription')" class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer mb-3">
+                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">💎</div>
+                    <span class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Subscription</span>
+                </button>
+
+                <!-- Logout -->
+                <button id="logout-btn" onclick="handleLogout()" class="flex items-center space-x-3 p-3 w-full border border-white/20 bg-white/5 hover:bg-red-500/30 rounded-xl transition-all text-white cursor-pointer shadow-sm">
+                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">🚪</div>
+                    <span class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap text-left">Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 w-full max-w-7xl mx-auto p-8 md:p-10 h-screen overflow-y-auto">
+
+            <!-- ========================================== -->
+            <!-- DASHBOARD GRID                             -->
+            <!-- ========================================== -->
+            <div id="view-patient" class="hidden animate-fade-in-up">
+                <!-- Header -->
+                <header class="mb-8">
+                    <h1 id="patient-welcome" class="text-3xl font-bold text-white tracking-tight">Welcome, Pekky</h1>
+                    <p class="text-white/80 mt-1 text-base">Here is your medical overview for today.</p>
+                </header>
+
+                <!-- Two-Column Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                    
+                    <!-- LEFT COLUMN (1/3) -->
+                    <div class="col-span-1 space-y-8">
+                        
+                        <!-- Daily Adherence Card -->
+                        <div class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl p-6 text-white text-center">
+                            <h3 class="text-sm font-semibold text-white/80 uppercase tracking-wider mb-2">Meds Taken</h3>
+                            <div class="text-5xl font-extrabold mb-4">0/0</div>
+                            <div class="flex justify-between border-t border-white/10 pt-4 text-sm font-medium">
+                                <span class="text-yellow-400">0 Pending</span>
+                                <span class="text-emerald-400">0 Taken</span>
+                            </div>
+                        </div>
+
+                        <!-- Stock Health Card -->
+                        <div class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl p-6 text-white text-center">
+                            <h3 class="text-sm font-semibold text-white/80 uppercase tracking-wider mb-4">Stock Health</h3>
+                            <div class="flex justify-between space-x-2">
+                                <div class="bg-red-500/20 border border-red-500/30 text-red-100 rounded-lg py-2 px-2 flex-1 flex flex-col items-center">
+                                    <span class="text-lg font-bold">0</span>
+                                    <span class="text-[10px] mt-1 text-red-200 uppercase tracking-wider font-semibold">Expired</span>
+                                </div>
+                                <div class="bg-yellow-500/20 border border-yellow-500/30 text-yellow-100 rounded-lg py-2 px-2 flex-1 flex flex-col items-center">
+                                    <span class="text-lg font-bold">3</span>
+                                    <span class="text-[10px] mt-1 text-yellow-200 uppercase tracking-wider font-semibold">Soon</span>
+                                </div>
+                                <div class="bg-emerald-500/20 border border-emerald-500/30 text-emerald-100 rounded-lg py-2 px-2 flex-1 flex flex-col items-center">
+                                    <span class="text-lg font-bold">0</span>
+                                    <span class="text-[10px] mt-1 text-emerald-200 uppercase tracking-wider font-semibold">Healthy</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Ask Gemini Card -->
+                        <div class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl p-6 text-white text-center">
+                            <h3 class="text-sm font-semibold text-white/80 uppercase tracking-wider mb-4">Quick Ask Gemini</h3>
+                            <button class="w-full py-3 bg-gradient-to-r from-blue-500/20 to-purple-500/20 hover:from-blue-500/30 hover:to-purple-500/30 border border-white/30 rounded-xl font-medium text-sm transition-all flex items-center justify-center space-x-2 focus:outline-none">
+                                <span class="text-yellow-400">⚡</span>
+                                <span>Side Effects?</span>
+                            </button>
+                        </div>
+                        
+                    </div>
+
+                    <!-- RIGHT COLUMN (2/3) -->
+                    <div class="col-span-1 md:col-span-2 flex flex-col">
+                        <!-- Schedule Card -->
+                        <section class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl overflow-hidden flex-1 flex flex-col">
+                            <div class="border-b border-white/10 px-6 py-4 flex justify-between items-center bg-white/5">
+                                <div class="flex items-center space-x-2.5">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <h2 class="text-lg font-semibold text-white">Current Schedule</h2>
+                                </div>
+                                <button onclick="openAddMedModal()"
+                                    class="px-3 py-1.5 bg-gradient-to-r from-[#f43f5e] to-[#800020] text-white border border-white/20 hover:opacity-90 text-sm font-medium rounded-lg transition-opacity focus:outline-none focus:ring-2 focus:ring-white/50 shadow-sm flex items-center space-x-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    <span>Add Medication</span>
+                                </button>
+                            </div>
+
+                            <div class="p-6 flex-1 flex flex-col">
+                                <div id="schedule-container" class="space-y-3 text-white flex-1">
+                                    <!-- Loading State -->
+                                    <div class="flex justify-center items-center py-12">
+                                        <svg class="animate-spin mr-3 h-5 w-5 text-white/70" xmlns="http://www.w3.org/2000/svg"
+                                            fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                            </path>
+                                        </svg>
+                                        <p class="text-white/70 font-medium text-sm">Loading schedule…</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Support Footer inside card -->
+                            <div class="border-t border-white/10 p-4 mt-auto text-center bg-black/10">
+                                <p class="text-xs text-white/60">Support & Queries · 1-800-CORE-FOUR</p>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dummy hidden caregiver view so JS doesn't break -->
+            <div id="view-caregiver" class="hidden"></div>
+            <h1 id="caregiver-welcome" class="hidden"></h1>
+            
+            <!-- ========================================== -->
+            <!-- CALENDAR VIEW                              -->
+            <!-- ========================================== -->
+            <div id="view-calendar" class="hidden animate-fade-in-up w-full h-full pt-10 pb-16 justify-start pr-4">
+                <header class="mb-8 text-center sm:text-left sm:ml-[10%]">
+                    <h1 class="text-3xl font-bold text-white tracking-tight">Family Calendar</h1>
+                    <p class="text-white/80 mt-1 text-base">Schedule and medication history.</p>
+                </header>
+
+                <div class="calendar" id="calendar">
+                    <div class="weekdays">
+                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                    </div>
+                    <div class="grid" id="calendar-grid"></div>
+                    <button class="fab">+ Add task</button>
+                </div>
+            </div>
+            <!-- ========================================== -->
+            <!-- ADD MEDICATION MODAL                       -->
+            <!-- ========================================== -->
+            <div id="add-med-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+                <!-- Overlay -->
+                <div class="absolute inset-0 bg-gray-900 bg-opacity-50" onclick="closeAddMedModal()"></div>
+
+                <!-- Modal Card -->
+                <div
+                    class="relative z-10 bg-gray-900/40 backdrop-blur-xl border border-white/20 text-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up m-4">
+                    <!-- Header -->
+                    <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5">
+                        <h3 class="text-lg font-bold text-white">Add Medication</h3>
+                        <button onclick="closeAddMedModal()"
+                            class="text-white/70 hover:text-white transition-colors focus:outline-none">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="p-6">
+                        <!-- AI Scanner Section -->
+                        <div
+                            class="mb-6 p-5 rounded-xl border border-white/20 bg-white/5 text-center relative overflow-hidden group">
+                            <div class="relative z-10">
+                                <div class="inline-flex items-center space-x-1.5 mb-3">
+                                    <span class="text-lg">✨</span>
+                                    <span class="text-sm font-bold text-white">Auto-Fill
+                                        with AI</span>
+                                </div>
+
+                                <!-- File Input styled as a button -->
+                                <div class="relative" id="ai-scanner-button-container">
+                                    <input type="file" id="ai-scanner-input" accept="image/*" capture="environment"
+                                        onchange="handleScan(event)"
+                                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                                        title="Scan Medicine Bottle">
+                                    <button type="button" id="scanBtn"
+                                        class="w-full py-2.5 px-4 bg-white/10 border border-white/20 text-white font-semibold text-sm rounded-lg shadow-sm group-hover:bg-white/20 transition-all flex items-center justify-center space-x-2">
+                                        <span class="text-lg">📸</span>
+                                        <span>Scan Medicine Bottle</span>
+                                    </button>
+                                </div>
+
+                                <!-- Loading State -->
+                                <div id="ai-scanner-loading"
+                                    class="hidden mt-3 flex items-center justify-center space-x-2 text-white">
+                                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                            stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+                                    <span class="text-xs font-semibold animate-pulse">Analyzing with Gemini AI...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Manual Inputs -->
+                        <form id="add-med-form" onsubmit="handleSaveMedication(event)">
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="med-gtin"
+                                        class="block text-sm font-semibold text-white mb-1.5">Product GTIN</label>
+                                    <input type="text" id="med-gtin"
+                                        class="w-full px-3 py-2.5 bg-black/20 border border-white/10 text-white placeholder-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-black/40 backdrop-blur-sm text-sm transition-all duration-150"
+                                        placeholder="e.g. 5012345678901">
+                                </div>
+                                <div>
+                                    <label for="med-name"
+                                        class="block text-sm font-semibold text-white mb-1.5">Medicine Name</label>
+                                    <input type="text" id="med-name" required
+                                        class="w-full px-3 py-2.5 bg-black/20 border border-white/10 text-white placeholder-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-black/40 backdrop-blur-sm text-sm transition-all duration-150"
+                                        placeholder="e.g. Amoxicillin">
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label for="med-batch"
+                                            class="block text-sm font-semibold text-white mb-1.5">Batch Number</label>
+                                        <input type="text" id="med-batch"
+                                            class="w-full px-3 py-2.5 bg-black/20 border border-white/10 text-white placeholder-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-black/40 backdrop-blur-sm text-sm transition-all duration-150"
+                                            placeholder="e.g. BN2024X">
+                                    </div>
+                                    <div>
+                                        <label for="med-dosage" class="block text-sm font-semibold text-white mb-1.5">Dosage
+                                            (mg)</label>
+                                        <input type="number" id="med-dosage" required
+                                            class="w-full px-3 py-2.5 bg-black/20 border border-white/10 text-white placeholder-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-black/40 backdrop-blur-sm text-sm transition-all duration-150"
+                                            placeholder="e.g. 500">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="med-quantity"
+                                        class="block text-sm font-semibold text-white mb-1.5">Quantity</label>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="adjustQuantity(-1)"
+                                            class="w-10 h-10 flex items-center justify-center bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors text-lg font-bold cursor-pointer">−</button>
+                                        <input type="number" id="med-quantity" value="1" min="1" required
+                                            class="flex-1 px-3 py-2.5 bg-black/20 border border-white/10 text-white text-center rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-black/40 backdrop-blur-sm text-sm transition-all duration-150">
+                                        <button type="button" onclick="adjustQuantity(1)"
+                                            class="w-10 h-10 flex items-center justify-center bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors text-lg font-bold cursor-pointer">+</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="med-expiry"
+                                        class="block text-sm font-semibold text-white mb-1.5">Expiry Date</label>
+                                    <input type="date" id="med-expiry"
+                                        class="w-full px-3 py-2.5 bg-black/20 border border-white/10 text-white placeholder-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-black/40 backdrop-blur-sm text-sm transition-all duration-150 [color-scheme:dark]">
+                                </div>
+                            </div>
+
+                            <div class="mt-8 flex justify-end space-x-3">
+                                <button type="button" onclick="closeAddMedModal()"
+                                    class="px-4 py-2.5 text-sm font-semibold text-white/80 bg-white/10 border border-white/20 hover:bg-white/20 rounded-xl transition-colors focus:outline-none">Cancel</button>
+                                <button type="submit"
+                                    class="px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-[#f43f5e] to-[#800020] border border-white/20 hover:opacity-90 rounded-xl shadow-sm transition-opacity focus:outline-none focus:ring-2 focus:ring-white/50">Save
+                                    Medication</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        <!-- ============================================================ -->
+    <!-- SUBSCRIPTION MODAL                                           -->
+    <!-- ============================================================ -->
+    <div id="view-subscription" class="hidden animate-fade-in-up w-full h-full flex items-start justify-center overflow-y-auto py-10">
+        <div class="relative w-full max-w-5xl mx-auto px-6 py-16">
+            <!-- Header -->
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-rose-400 mb-5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.7)] animate-pulse"></span>
+                    Curo Health
+                </div>
+                <h1 class="text-4xl md:text-5xl font-bold text-white leading-tight mb-4">
+                    Care that scales<br>from <em class="text-rose-500 italic">one person</em> to the whole family
+                </h1>
+                <p class="text-white/50 text-base max-w-md mx-auto leading-relaxed">
+                    Pick the plan that fits how much of the household you're looking after — upgrade any time as things change.
+                </p>
+            </div>
+
+            <!-- Monthly / Yearly Toggle -->
+            <div class="flex justify-center mb-14">
+                <div id="sub-toggle" class="relative inline-flex items-center bg-white/5 border border-white/10 backdrop-blur-xl rounded-full p-1 gap-1">
+                    <button class="sub-toggle-btn active" data-mode="monthly">Monthly</button>
+                    <button class="sub-toggle-btn" data-mode="yearly">Yearly <span class="text-[10.5px] font-bold bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full">Save 20%</span></button>
+                </div>
+            </div>
+
+            <!-- Plans Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
+
+                <!-- Tier 1 — Starter -->
+                <div class="plan relative bg-white/[0.045] border border-white/[0.09] backdrop-blur-2xl rounded-2xl p-7 flex flex-col transition-transform hover:-translate-y-1">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5 border border-white/[0.09] mb-4">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M5 8l7-5 7 5" stroke="#c7cad1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <div class="text-lg font-bold text-white mb-1">Starter</div>
+                    <div class="text-xs text-white/30 leading-relaxed mb-5 min-h-[36px]">For one person keeping their own medication schedule on track.</div>
+
+                    <div class="flex items-baseline gap-1 mb-1">
+                        <span class="price text-3xl font-semibold text-white tabular-nums tracking-tight transition-opacity duration-150" data-monthly="0" data-yearly="0">$0</span>
+                        <span class="price-period text-xs text-white/30">/ forever</span>
+                    </div>
+                    <div class="text-[11.5px] text-rose-400 font-semibold mb-5 min-h-[15px]">&nbsp;</div>
+
+                    <button onclick="switchView('patient')" class="w-full py-2.5 rounded-xl text-sm font-bold border border-white/[0.09] bg-white/[0.04] text-white hover:bg-white/[0.08] transition-all mb-5 cursor-pointer">Get started free</button>
+
+                    <div class="h-px bg-white/[0.09] mb-4"></div>
+                    <ul class="flex flex-col gap-3 flex-1">
+                        <li class="flex items-start gap-2 text-xs text-white font-semibold leading-relaxed">
+                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/20 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#f43f5e" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                            Basic medication tracking &amp; daily schedule
+                        </li>
+                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                            Stock health alerts — expired or running low
+                        </li>
+                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                            Limited AI Assistant queries — Quick Ask
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Tier 2 — Family Hub (featured) -->
+                <div class="plan relative bg-gradient-to-b from-rose-500/10 to-rose-500/[0.02] border border-rose-500/40 backdrop-blur-2xl rounded-2xl p-7 flex flex-col shadow-[0_24px_60px_-20px_rgba(244,63,94,0.35),inset_0_1px_0_rgba(255,255,255,0.06)] transition-transform hover:-translate-y-2">
+                    <div class="absolute -top-3 left-6 bg-rose-500 text-white text-[10.5px] font-bold tracking-wide px-3 py-1 rounded-full shadow-[0_6px_16px_-4px_rgba(244,63,94,0.6)]">Most families choose this</div>
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-rose-500/15 border border-rose-500/30 mb-4">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="8" r="3" stroke="#f43f5e" stroke-width="1.6"/><circle cx="17" cy="8" r="3" stroke="#f43f5e" stroke-width="1.6"/><path d="M2.5 20c.6-3.6 3-5.5 5.5-5.5S13.4 16.4 14 20M13 20c.5-3 2.4-4.7 4.5-4.7s3.8 1.7 4 4.7" stroke="#f43f5e" stroke-width="1.6" stroke-linecap="round"/></svg>
+                    </div>
+                    <div class="text-lg font-bold text-white mb-1">Family Hub</div>
+                    <div class="text-xs text-white/30 leading-relaxed mb-5 min-h-[36px]">For households managing medication across multiple members and devices.</div>
+
+                    <div class="flex items-baseline gap-1 mb-1">
+                        <span class="price text-3xl font-semibold text-white tabular-nums tracking-tight transition-opacity duration-150" data-monthly="9.99" data-yearly="7.99">$9.99</span>
+                        <span class="price-period text-xs text-white/30">/ mo</span>
+                    </div>
+                    <div class="text-[11.5px] text-rose-400 font-semibold mb-5 min-h-[15px]" data-yearly-note>&nbsp;</div>
+
+                    <button onclick="switchView('patient')" class="w-full py-2.5 rounded-xl text-sm font-bold bg-gradient-to-b from-rose-400 to-rose-500 text-white border-none hover:brightness-110 transition-all mb-5 cursor-pointer shadow-[0_4px_18px_-4px_rgba(244,63,94,0.55)]">Start Family Hub</button>
+
+                    <div class="h-px bg-white/[0.09] mb-4"></div>
+                    <ul class="flex flex-col gap-3 flex-1">
+                        <li class="flex items-start gap-2 text-xs text-white font-semibold leading-relaxed">
+                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/20 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#f43f5e" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                            Everything in Starter, plus:
+                        </li>
+                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                            Full multi-user account switching — Mom, Dad, patient profiles
+                        </li>
+                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                            Unlimited AI bottle scanning + interaction analysis
+                        </li>
+                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                            Caregiver alerts for missed doses
+                        </li>
+                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                            Shared family calendar view
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Tier 3 — Concierge -->
+                <div class="plan relative bg-white/[0.045] border border-white/[0.09] backdrop-blur-2xl rounded-2xl p-7 flex flex-col transition-transform hover:-translate-y-1">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5 border border-white/[0.09] mb-4">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.6 5.8L21 9l-4.7 4.1L17.5 20 12 16.5 6.5 20l1.2-6.9L3 9l6.4-1.2L12 2z" stroke="#c7cad1" stroke-width="1.4" stroke-linejoin="round"/></svg>
+                    </div>
+                    <div class="text-lg font-bold text-white mb-1">Concierge</div>
+                    <div class="text-xs text-white/30 leading-relaxed mb-5 min-h-[36px]">For power users coordinating aging parents' care with nurses or clinics.</div>
+
+                    <div class="flex items-baseline gap-1 mb-1">
+                        <span class="price text-3xl font-semibold text-white tabular-nums tracking-tight transition-opacity duration-150" data-monthly="24.99" data-yearly="19.99">$24.99</span>
+                        <span class="price-period text-xs text-white/30">/ mo</span>
+                    </div>
+                    <div class="text-[11.5px] text-rose-400 font-semibold mb-5 min-h-[15px]" data-yearly-note>&nbsp;</div>
+
+                    <button onclick="switchView('patient')" class="w-full py-2.5 rounded-xl text-sm font-bold border border-white/[0.09] bg-white/[0.04] text-white hover:bg-white/[0.08] transition-all mb-5 cursor-pointer">Talk to us</button>
+
+                    <div class="h-px bg-white/[0.09] mb-4"></div>
+                    <ul class="flex flex-col gap-3 flex-1">
+                        <li class="flex items-start gap-2 text-xs text-white font-semibold leading-relaxed">
+                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/20 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#f43f5e" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                            Everything in Family Hub, plus:
+                        </li>
+                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                            Real-time emergency alerts to doctors &amp; care providers
+                        </li>
+                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                            Adherence analytics — weekly/monthly PDF reports
+                        </li>
+                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                            Priority 24/7 AI support
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <!-- Footer Note -->
+            <p class="text-center text-white/30 text-xs mt-10">Prices in USD. Cancel any time — annual plans billed once per year.</p>
+        </div>
+    </div>
+        </main>
+    </div>
+
+
+    <!-- ============================================================ -->
+    <!-- APPLICATION LOGIC                                            -->
+    <!-- ============================================================ -->
+    <script>
+        const API_BASE = 'http://127.0.0.1:8000';
+
+        // ----------------------------------------------------------
+        // Session state
+        // ----------------------------------------------------------
+        let currentUser = null; // { id, name, email, role }
+
+        // ----------------------------------------------------------
+        // Login handler
+        // ----------------------------------------------------------
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+            const errorTxt = document.getElementById('login-error-text');
+            const btn = document.getElementById('login-btn');
+            const btnText = document.getElementById('login-btn-text');
+            const spinner = document.getElementById('login-spinner');
+
+            // Hide previous errors
+            errorEl.classList.add('hidden');
+
+            // Show loading state
+            btnText.textContent = 'Signing in…';
+            spinner.classList.remove('hidden');
+            btn.disabled = true;
+
+            // Small delay for UX polish
+            await new Promise(r => setTimeout(r, 400));
+
+            try {
+                // Try to authenticate against the backend login endpoint
+                const loginRes = await fetch(`${API_BASE}/users/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (loginRes.ok) {
+                    const userData = await loginRes.json();
+                    loginSuccess({
+                        id: userData.id,
+                        name: userData.name,
+                        email: userData.email,
+                        role: userData.role
+                    });
+                    return;
+                }
+
+                throw new Error('Invalid email or password.');
+
+            } catch (err) {
+                // Show error
+                errorTxt.textContent = 'Invalid email or password.';
+                errorEl.classList.remove('hidden');
+            } finally {
+                // Reset button
+                btnText.textContent = 'Sign In';
+                spinner.classList.add('hidden');
+                btn.disabled = false;
+            }
+        }
+
+        /**
+         * Transition from login screen to authenticated app shell.
+         */
+        function loginSuccess(user) {
+            currentUser = user;
+
+            // Hide login view
+            document.getElementById('view-login').classList.add('hidden');
+
+            // Show app shell
+            const shell = document.getElementById('app-shell');
+            shell.classList.remove('hidden');
+            shell.classList.add('animate-fade-in-up');
+
+            // Update dynamic headers
+            document.getElementById('patient-welcome').textContent = `Welcome, ${user.name}`;
+            document.getElementById('caregiver-welcome').textContent = `Caregiver Portal: Welcome, ${user.name}`;
+
+            // Show the correct tab button(s) and default view
+            if (user.role === 'caregiver') {
+                document.getElementById('tab-patient').classList.remove('hidden');
+                document.getElementById('tab-caregiver').classList.remove('hidden');
+                switchView('caregiver');
+            } else {
+                document.getElementById('tab-patient').classList.remove('hidden');
+                document.getElementById('tab-caregiver').classList.remove('hidden');
+                switchView('patient');
+            }
+        }
+
+        // ----------------------------------------------------------
+        // Auth mode toggle (Sign In ↔ Sign Up)
+        // ----------------------------------------------------------
+        let isSignUpMode = false;
+
+        function toggleAuthMode() {
+            isSignUpMode = !isSignUpMode;
+
+            const container = document.getElementById('auth-sliding-container');
+            const loginError = document.getElementById('login-error');
+            const signupError = document.getElementById('signup-error');
+
+            // Hide any banners on toggle
+            if (loginError) loginError.classList.add('hidden');
+            if (signupError) signupError.classList.add('hidden');
+
+            if (isSignUpMode) {
+                container.classList.add('right-panel-active');
+            } else {
+                container.classList.remove('right-panel-active');
+            }
+        }
+
+        // ----------------------------------------------------------
+        // Sign-up handler — POST /users/
+        // ----------------------------------------------------------
+        async function handleSignUp(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('signup-name').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const role = document.getElementById('signup-role').value;
+            const familyId = parseInt(document.getElementById('signup-family-id').value, 10);
+
+            const errorEl = document.getElementById('signup-error');
+            const errorTxt = document.getElementById('signup-error-text');
+            const btn = document.getElementById('signup-btn');
+            const btnText = document.getElementById('signup-btn-text');
+            const spinner = document.getElementById('signup-spinner');
+            const successEl = document.getElementById('signup-success');
+            const successTxt = document.getElementById('signup-success-text');
+
+            // Reset banners
+            errorEl.classList.add('hidden');
+            successEl.classList.add('hidden');
+
+            // Validate family_id
+            if (isNaN(familyId) || familyId < 1) {
+                errorTxt.textContent = 'Please enter a valid Family ID (a positive number).';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            // Show loading
+            btnText.textContent = 'Creating account…';
+            spinner.classList.remove('hidden');
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/users/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name,
+                        email,
+                        password,
+                        role,
+                        family_id: familyId
+                    })
+                });
+
+                if (res.status === 201 || res.ok) {
+                    const userData = await res.json();
+
+                    // Store the new user and transition to onboarding
+                    currentUser = userData;
+
+                    // Reset signup form
+                    document.getElementById('signup-form').reset();
+
+                    // Pre-fill onboarding display name
+                    const onboardName = document.getElementById('onboard-display-name');
+                    if (onboardName) onboardName.value = userData.name || name;
+
+                    // Hide auth, show onboarding
+                    document.getElementById('view-login').classList.add('hidden');
+                    const onboarding = document.getElementById('view-onboarding');
+                    onboarding.classList.remove('hidden');
+                    onboarding.classList.add('animate-fade-in-up');
+                } else {
+                    // Parse error from backend
+                    let message = 'Could not create account.';
+                    try {
+                        const errBody = await res.json();
+                        if (typeof errBody.detail === 'string') {
+                            message = errBody.detail;
+                        } else if (Array.isArray(errBody.detail)) {
+                            message = errBody.detail.map(d => d.msg || d).join(', ');
+                        }
+                    } catch (_) { }
+                    errorTxt.textContent = message;
+                    errorEl.classList.remove('hidden');
+                }
+            } catch (err) {
+                errorTxt.textContent = err.message || 'Network error. Please try again.';
+                errorEl.classList.remove('hidden');
+            } finally {
+                btnText.textContent = 'Create Account';
+                spinner.classList.add('hidden');
+                btn.disabled = false;
+            }
+        }
+
+        // ----------------------------------------------------------
+        // Logout
+        // ----------------------------------------------------------
+        function handleLogout() {
+            currentUser = null;
+            isSignUpMode = false;
+
+            const shell = document.getElementById('app-shell');
+            shell.classList.add('hidden');
+            shell.classList.remove('animate-fade-in-up');
+
+            // Hide onboarding too
+            const onboarding = document.getElementById('view-onboarding');
+            if (onboarding) {
+                onboarding.classList.add('hidden');
+                onboarding.classList.remove('animate-fade-in-up');
+            }
+
+            document.getElementById('view-patient').classList.add('hidden');
+            document.getElementById('view-caregiver').classList.add('hidden');
+            document.getElementById('tab-patient').classList.add('hidden');
+            document.getElementById('tab-caregiver').classList.add('hidden');
+
+            const login = document.getElementById('view-login');
+            login.classList.remove('hidden');
+            login.classList.add('animate-fade-in-up');
+
+            // Reset forms and banners
+            document.getElementById('login-form').reset();
+            document.getElementById('signup-form').reset();
+            document.getElementById('login-error').classList.add('hidden');
+            document.getElementById('signup-error').classList.add('hidden');
+            document.getElementById('signup-success').classList.add('hidden');
+
+            const demoHint = document.getElementById('demo-hint');
+            if (demoHint) demoHint.classList.remove('hidden');
+
+            // RESET THE SLIDING CURTAIN TO DEFAULT (SIGN IN)
+            const slidingContainer = document.getElementById('auth-sliding-container');
+            if (slidingContainer) {
+                slidingContainer.classList.remove('right-panel-active');
+            }
+        }
+
+        // ----------------------------------------------------------
+        // Onboarding Logic
+        // ----------------------------------------------------------
+        let onboardMode = 'create';
+
+        function setOnboardMode(mode) {
+            onboardMode = mode;
+            const createBtn = document.getElementById('onboard-create-btn');
+            const joinBtn = document.getElementById('onboard-join-btn');
+            const familyLabel = document.getElementById('onboard-family-label');
+            const familyInput = document.getElementById('onboard-family-name');
+            const submitBtn = document.getElementById('onboard-submit-btn');
+
+            if (mode === 'create') {
+                createBtn.className = 'py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all duration-200 bg-gradient-to-r from-[#f43f5e] to-[#800020] text-white border-transparent shadow-md';
+                joinBtn.className = 'py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all duration-200 bg-white text-gray-600 border-gray-200 hover:border-gray-300';
+                familyLabel.textContent = 'Family Name';
+                familyInput.placeholder = 'e.g. The Smith Family';
+                submitBtn.textContent = '✨ Create Household';
+            } else {
+                joinBtn.className = 'py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all duration-200 bg-gradient-to-r from-[#f43f5e] to-[#800020] text-white border-transparent shadow-md';
+                createBtn.className = 'py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all duration-200 bg-white text-gray-600 border-gray-200 hover:border-gray-300';
+                familyLabel.textContent = 'Family Code';
+                familyInput.placeholder = 'e.g. smith-family-2024';
+                submitBtn.textContent = '🤝 Join Household';
+            }
+        }
+
+        function completeOnboarding() {
+            // Hide onboarding
+            const onboarding = document.getElementById('view-onboarding');
+            onboarding.classList.add('hidden');
+            onboarding.classList.remove('animate-fade-in-up');
+
+            // Update display name if provided
+            const displayName = document.getElementById('onboard-display-name').value.trim();
+            if (displayName && currentUser) {
+                currentUser.name = displayName;
+            }
+
+            // Proceed to dashboard
+            loginSuccess(currentUser);
+        }
+
+        // ----------------------------------------------------------
+        // Tab Switching Logic
+        // ----------------------------------------------------------
+        function switchView(tabName) {
+            const patientView = document.getElementById('view-patient');
+            const caregiverView = document.getElementById('view-caregiver');
+            const calendarView = document.getElementById('view-calendar');
+            const subscriptionView = document.getElementById('view-subscription');
+            const tabPatientBtn = document.getElementById('tab-patient');
+            const tabCaregiverBtn = document.getElementById('tab-caregiver');
+
+            const activeClasses = ['bg-brand-50', 'text-brand-700'];
+            const inactiveClasses = ['text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100'];
+            
+            // Hide all first
+            [patientView, caregiverView, calendarView, subscriptionView].forEach(view => {
+                if(view) {
+                    view.classList.add('hidden');
+                    view.classList.remove('block');
+                }
+            });
+
+            if (tabName === 'patient') {
+                if(patientView) {
+                    patientView.classList.remove('hidden');
+                    patientView.classList.add('block');
+                }
+                tabPatientBtn.classList.add(...activeClasses);
+                tabPatientBtn.classList.remove(...inactiveClasses);
+                tabCaregiverBtn.classList.remove(...activeClasses);
+                tabCaregiverBtn.classList.add(...inactiveClasses);
+
+                getDailySchedule();
+            } else if (tabName === 'caregiver') {
+                if(caregiverView) {
+                    caregiverView.classList.remove('hidden');
+                    caregiverView.classList.add('block');
+                }
+                tabCaregiverBtn.classList.add(...activeClasses);
+                tabCaregiverBtn.classList.remove(...inactiveClasses);
+                tabPatientBtn.classList.remove(...activeClasses);
+                tabPatientBtn.classList.add(...inactiveClasses);
+
+                fetchAlerts();
+            } else if (tabName === 'calendar') {
+                if(calendarView) {
+                    calendarView.classList.remove('hidden');
+                    calendarView.classList.add('block');
+                }
+                // Optional: Initialize or fetch calendar data here if needed
+            } else if (tabName === 'subscription') {
+                if (subscriptionView) {
+                    subscriptionView.classList.remove('hidden');
+                }
+            }
+        }
+
+        // ----------------------------------------------------------
+        // Patient Dashboard Logic
+        // ----------------------------------------------------------
+        function getDailySchedule() {
+            if (!currentUser) return;
+
+            const userId = currentUser.id;
+
+            fetch(`${API_BASE}/dashboard/${userId}/schedule`)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    const container = document.getElementById('schedule-container');
+                    container.innerHTML = '';
+
+                    if (!data || data.length === 0) {
+                        container.innerHTML = `
+                            <div class="rounded-xl p-10 text-center border border-dashed border-gray-200 bg-slate-50">
+                                <svg class="mx-auto h-10 w-10 text-green-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                <p class="text-gray-700 text-base font-semibold">No medications scheduled for today!</p>
+                                <p class="text-gray-400 mt-1 text-sm">You're all caught up.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    data.forEach(item => {
+                        const med = item.medication;
+                        let timeStr = item.time_slot;
+                        if (timeStr && timeStr.length === 8) timeStr = timeStr.substring(0, 5);
+
+                        const isTaken = item.adherence_status === 'taken';
+
+                        // Status pill: soft green for taken, soft amber for pending
+                        const pillClasses = isTaken
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : 'bg-amber-50 text-amber-700 border border-amber-200';
+                        const statusText = isTaken ? 'TAKEN' : 'PENDING';
+
+                        // Icon accent: green ring for taken, blue for pending
+                        const iconWrapClasses = isTaken
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-600'
+                            : 'bg-brand-50 border-brand-200 text-brand-600';
+
+                        let actionButtonHTML = '';
+                        if (!isTaken && item.adherence_log_id) {
+                            actionButtonHTML = `
+                                <button onclick="markAsTaken(${item.adherence_log_id})"
+                                    class="mt-3 w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1">
+                                    ✓ Mark as Taken
+                                </button>
+                            `;
+                        }
+
+                        const cardHTML = `
+                            <div class="card-hover flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-200 bg-white">
+                                <div class="flex items-center space-x-4 mb-3 sm:mb-0">
+                                    <div class="flex-shrink-0 w-12 h-12 rounded-xl ${iconWrapClasses} border flex items-center justify-center">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-base font-semibold text-gray-900">${med.name}</h3>
+                                        <p class="text-sm text-gray-400 font-medium">${med.dosage_mg} mg</p>
+                                    </div>
+                                </div>
+                                <div class="sm:text-right flex flex-col items-start sm:items-end">
+                                    <div class="flex items-center space-x-3">
+                                        <p class="text-xl font-bold text-gray-900 tabular-nums">${timeStr}</p>
+                                        <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold tracking-wide ${pillClasses}">
+                                            ${statusText}
+                                        </span>
+                                    </div>
+                                    ${actionButtonHTML}
+                                </div>
+                            </div>
+                        `;
+                        container.insertAdjacentHTML('beforeend', cardHTML);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error fetching schedule:", error);
+                    const container = document.getElementById('schedule-container');
+                    container.innerHTML = `
+                        <div class="rounded-xl p-6 text-center border border-red-200 bg-red-50">
+                            <p class="text-red-600 font-medium text-sm">Error loading schedule. Please ensure the backend server is running.</p>
+                            <p class="text-red-400 text-xs mt-1">${error.message}</p>
+                        </div>
+                    `;
+                });
+        }
+
+        async function markAsTaken(logId) {
+            try {
+                const response = await fetch(`${API_BASE}/adherence/${logId}/take`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    getDailySchedule();
+                    fetchAlerts();
+                } else {
+                    const err = await response.json();
+                    alert("Error marking as taken: " + (err.detail || response.statusText));
+                }
+            } catch (error) {
+                console.error("Failed to mark as taken:", error);
+                alert("An error occurred while marking as taken.");
+            }
+        }
+
+        // ----------------------------------------------------------
+        // Caregiver Portal Logic
+        // ----------------------------------------------------------
+        function fetchAlerts() {
+            const container = document.getElementById('alerts-container');
+
+            container.innerHTML = `
+                <div class="flex justify-center items-center py-12">
+                    <svg class="animate-spin mr-3 h-5 w-5 text-brand-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="text-gray-400 font-medium text-sm">Checking for missed doses…</p>
+                </div>
+            `;
+
+            fetch(`${API_BASE}/alerts/check-missed`)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    container.innerHTML = '';
+
+                    if (!data || data.length === 0) {
+                        container.innerHTML = `
+                            <div class="rounded-xl p-10 text-center border border-dashed border-green-200 bg-emerald-50/50">
+                                <svg class="mx-auto h-12 w-12 text-emerald-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <p class="text-gray-800 text-base font-semibold">All patients are up to date!</p>
+                                <p class="text-gray-400 mt-1 text-sm">No missed medications. Great job!</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    data.forEach(alertData => {
+                        let timeStr = alertData.scheduled_time;
+                        if (timeStr && timeStr.length === 8) timeStr = timeStr.substring(0, 5);
+
+                        const cardHTML = `
+                            <div class="card-hover flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-200 border-l-4 border-l-red-500 bg-white">
+                                <div class="flex items-center space-x-4 mb-3 sm:mb-0">
+                                    <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-red-50 border border-red-200 text-red-500 flex items-center justify-center">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-900">${alertData.message}</p>
+                                        <p class="text-xs text-gray-500 mt-0.5">
+                                            Patient: <span class="font-medium text-gray-700">${alertData.patient_name}</span> · Medication: <span class="font-medium text-gray-700">${alertData.medication_name}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="sm:text-right flex-shrink-0">
+                                    <p class="text-xs text-gray-400 font-medium uppercase tracking-wider">Scheduled</p>
+                                    <p class="text-xl font-bold text-red-600 tabular-nums">${timeStr}</p>
+                                </div>
+                            </div>
+                        `;
+                        container.insertAdjacentHTML('beforeend', cardHTML);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error fetching alerts:", error);
+                    container.innerHTML = `
+                        <div class="rounded-xl p-6 text-center border border-gray-200 bg-slate-50">
+                            <p class="text-red-600 font-semibold text-sm">Error loading alerts.</p>
+                            <p class="text-gray-400 text-xs mt-1">Please ensure the backend server is running.</p>
+                            <p class="text-gray-300 text-xs mt-0.5">${error.message}</p>
+                        </div>
+                    `;
+                });
+        }
+
+        // ----------------------------------------------------------
+        // AI Scanner Modal Logic
+        // ----------------------------------------------------------
+        function openAddMedModal() {
+            document.getElementById('add-med-modal').classList.remove('hidden');
+            document.getElementById('add-med-form').reset();
+            document.getElementById('med-quantity').value = 1;
+            document.getElementById('ai-scanner-loading').classList.add('hidden');
+        }
+
+        function closeAddMedModal() {
+            document.getElementById('add-med-modal').classList.add('hidden');
+        }
+
+        function adjustQuantity(delta) {
+            const input = document.getElementById('med-quantity');
+            const newVal = Math.max(1, parseInt(input.value || '1') + delta);
+            input.value = newVal;
+        }
+
+        async function handleScan(event) {
+            event.preventDefault();
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const loadingEl = document.getElementById('ai-scanner-loading');
+            const buttonContainer = document.getElementById('ai-scanner-button-container');
+            loadingEl.classList.remove('hidden');
+            buttonContainer.classList.add('hidden');
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`${API_BASE}/api/analyze-medication`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.status === 500) {
+                    alert("Our AI service is currently experiencing high traffic. Please wait a few seconds and try scanning again!");
+                    return;
+                }
+
+                if (!response.ok) {
+                    const errData = await response.text();
+                    throw new Error(errData);
+                }
+
+                const data = await response.json();
+
+                // Populate all extracted fields from Gemini AI
+                if (data.gtin) {
+                    document.getElementById('med-gtin').value = data.gtin;
+                }
+                if (data.name) {
+                    document.getElementById('med-name').value = data.name;
+                }
+                if (data.batch_number) {
+                    document.getElementById('med-batch').value = data.batch_number;
+                }
+                if (data.dosage) {
+                    document.getElementById('med-dosage').value = data.dosage;
+                }
+                if (data.expiry_date) {
+                    // Convert DD-MM-YYYY to YYYY-MM-DD for HTML date input
+                    const parts = data.expiry_date.split('-');
+                    if (parts.length === 3) {
+                        document.getElementById('med-expiry').value = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    }
+                }
+                // Quantity stays at default (1) for user to adjust manually
+            } catch (error) {
+                console.error("Scanning failed:", error);
+                alert("There was an error scanning. Please try again.");
+            } finally {
+                loadingEl.classList.add('hidden');
+                buttonContainer.classList.remove('hidden');
+                event.target.value = '';
+
+                // Foolproof reset: Find ANY button that got stuck
+                const buttons = document.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    if (btn.disabled && btn.innerHTML.includes('Analyzing')) {
+                        btn.innerHTML = '📸 Scan Medicine Bottle';
+                        btn.disabled = false;
+                    }
+                });
+            }
+        }
+
+        function handleSaveMedication(event) {
+            event.preventDefault();
+            alert("Medication 'saved'! (Demo mode)");
+            closeAddMedModal();
+        }
+
+        // Dropdown Logic
+        function toggleFamilyDropdown() {
+            const dropdown = document.getElementById('family-dropdown');
+            dropdown.classList.toggle('hidden');
+        }
+        
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('family-dropdown');
+            if (dropdown && !dropdown.classList.contains('hidden') && !e.target.closest('.relative.flex.items-center')) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // ----------------------------------------------------------
+        // Initialization
+        // ----------------------------------------------------------
+        document.addEventListener('DOMContentLoaded', () => {
+            // Init Calendar
+            initCalendar();
+            // Everything starts hidden behind the login screen.
+            // Data fetching begins only after successful login.
+        });
+
+        // ----------------------------------------------------------
+        // Calendar Logic
+        // ----------------------------------------------------------
+        function initCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            if(!grid) return;
+
+            // month grid: Tue-start, 5 visible rows
+            const daysInMonth = 30;
+            const startOffset = 2; // Sun=0 Mon=1 Tue=2 ... first of month falls on Tue
+            const totalCells = 35; // 5 rows x 7
+
+            const litDays = [1,2,4, 7,8,10, 13,14,16, 21,24,28];
+
+            for (let i = 0; i < totalCells; i++) {
+                const dayNum = i - startOffset + 1;
+                const cell = document.createElement('div');
+                cell.className = 'day';
+
+                if (dayNum < 1 || dayNum > daysInMonth) {
+                    cell.classList.add('muted');
+                } else {
+                    cell.innerHTML = `<span class="day-num">${dayNum}</span>`;
+                    if (litDays.includes(dayNum)) {
+                        cell.classList.add('lit');
+                        const surface = document.createElement('div');
+                        surface.className = 'surface';
+                        cell.appendChild(surface);
+                        const bar = document.createElement('div');
+                        bar.className = 'glowbar';
+                        cell.appendChild(bar);
+                    }
+                }
+                grid.appendChild(cell);
+            }
+        }
+
+        // ----------------------------------------------------------
+        // Subscription Toggle Logic
+        // ----------------------------------------------------------
+        document.addEventListener('DOMContentLoaded', () => {
+            const subToggle = document.getElementById('sub-toggle');
+            if (subToggle) {
+                const subButtons = subToggle.querySelectorAll('button');
+                const subPrices = document.querySelectorAll('#view-subscription .price');
+                const subPeriods = document.querySelectorAll('#view-subscription .price-period');
+                const subYearlyNotes = document.querySelectorAll('#view-subscription [data-yearly-note]');
+
+                function setSubMode(mode){
+                    subToggle.classList.toggle('yearly', mode === 'yearly');
+                    subButtons.forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+
+                    subPrices.forEach(p => {
+                        const val = parseFloat(p.dataset[mode]);
+                        p.style.opacity = 0;
+                        setTimeout(() => {
+                            p.textContent = val === 0 ? '$0' : (Number.isInteger(val) ? `$${val}` : `$${val.toFixed(2)}`);
+                            p.style.opacity = 1;
+                        }, 130);
+                    });
+
+                    subPeriods.forEach(p => {
+                        if (p.closest('.plan').querySelector('.price').dataset.monthly === "0") return;
+                        p.textContent = mode === 'yearly' ? '/ mo, billed yearly' : '/ mo';
+                    });
+
+                    subYearlyNotes.forEach(n => {
+                        n.innerHTML = mode === 'yearly' ? 'Billed annually &middot; save 20%' : '&nbsp;';
+                    });
+                }
+
+                subButtons.forEach(btn => {
+                    btn.addEventListener('click', () => setSubMode(btn.dataset.mode));
+                });
+            }
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+</body>
+
+</html>
+
+

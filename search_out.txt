@@ -1,0 +1,96 @@
+56: #view-calendar.block {
+61: #view-calendar .calendar{
+75: #view-calendar .weekdays{
+82: #view-calendar .weekdays div{
+92: #view-calendar .grid{
+101: #view-calendar .day{
+114: #view-calendar .day:hover {
+118: #view-calendar .day.muted{ visibility: hidden; }
+120: #view-calendar .day-num{ position:relative; z-index:2; pointer-events:none; }
+122: #view-calendar .day.lit{
+131: #view-calendar .day.lit .surface{
+139: #view-calendar .day.lit .surface::before{
+149: #view-calendar .glowbar{
+165: #view-calendar .day.selected{
+171: #view-calendar .fab{
+186: #view-calendar .fab:hover{ opacity: 0.9; }
+189: /* SUBSCRIPTION THEME                                           */
+191: #view-subscription {
+207: #view-subscription::before {
+219: #view-subscription::after {
+232: #view-subscription .wrap{
+240: #view-subscription .eyebrow{
+252: #view-subscription .eyebrow .dot{
+264: #view-subscription h1{
+273: #view-subscription h1 em{
+278: #view-subscription .sub{
+287: #view-subscription .toggle-row{
+292: #view-subscription .toggle{
+303: #view-subscription .toggle button{
+321: #view-subscription .toggle button.active{ color: #fff; }
+322: #view-subscription .toggle .save-pill{
+331: #view-subscription .toggle button.active .save-pill{
+335: #view-subscription .toggle-thumb{
+347: #view-subscription .toggle.yearly .toggle-thumb{ transform: translateX(100%); }
+349: #view-subscription .plans-scroll{
+354: #view-subscription .plans{
+362: #view-subscription .plan{
+374: #view-subscription .plan:hover{ transform: translateY(-4px); }
+376: #view-subscription .plan.featured{
+381: #view-subscription .plan.featured:hover{ transform: translateY(-8px); }
+383: #view-subscription .ribbon{
+398: #view-subscription .plan-icon{
+409: #view-subscription .plan.featured .plan-icon{
+413: #view-subscription .plan-icon svg{ width: 17px; height: 17px; }
+415: #view-subscription .plan-name{
+420: #view-subscription .plan-audience{
+428: #view-subscription .price-row{
+434: #view-subscription .price{
+441: #view-subscription .price-period{
+445: #view-subscription .price-note{
+453: #view-subscription .cta{
+469: #view-subscription .cta:hover{ background: rgba(255,255,255,0.08); transform: translateY(-1px); }
+470: #view-subscription .plan.featured .cta{
+475: #view-subscription .plan.featured .cta:hover{ filter: brightness(1.06); }
+477: #view-subscription .divider{
+483: #view-subscription .features{
+490: #view-subscription .features li{
+498: #view-subscription .features li .check{
+509: #view-subscription .features li .check svg{ width: 9px; height: 9px; }
+510: #view-subscription .features li.lead{
+514: #view-subscription .features li.lead .check{
+517: #view-subscription .features li.lead .check svg path{ stroke: var(--sub-rose); }
+519: #view-subscription .foot-note{
+526: #view-subscription .close-btn {
+541: #view-subscription .close-btn:hover {
+546: #view-subscription .plan.featured{ order: -1; }
+823: <div id="view-login" class="auth-wrapper px-4 py-12">
+1018: <div id="view-onboarding" class="hidden min-h-screen bg-gray-100 flex items-center justify-center px-4 py-12">
+1077: <!-- SUBSCRIPTION MODAL                                           -->
+1079: <div id="view-subscription" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-2xl overflow-y-auto flex items-center justify-center p-4 md:p-8">
+1081: <button class="close-btn" onclick="document.getElementById('view-subscription').classList.add('hidden')">Close ✕</button>
+1112: <button class="cta" onclick="document.getElementById('view-subscription').classList.add('hidden')">Get started free</button>
+1137: <button class="cta" onclick="document.getElementById('view-subscription').classList.add('hidden')">Start Family Hub</button>
+1163: <button class="cta" onclick="document.getElementById('view-subscription').classList.add('hidden')">Talk to us</button>
+1238: <!-- Bottom: Subscription & Logout -->
+1240: <!-- Subscription Button -->
+1241: <button id="nav-subscription" onclick="document.getElementById('view-subscription').classList.remove('hidden')" class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer mb-3">
+1243: <span class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Subscription</span>
+1259: <div id="view-patient" class="hidden animate-fade-in-up">
+1361: <div id="view-caregiver" class="hidden"></div>
+1367: <div id="view-calendar" class="hidden animate-fade-in-up w-full h-full pt-10 pb-16 justify-start pr-4">
+1553: document.getElementById('view-login').classList.add('hidden');
+1662: document.getElementById('view-login').classList.add('hidden');
+1663: const onboarding = document.getElementById('view-onboarding');
+1702: const onboarding = document.getElementById('view-onboarding');
+1708: document.getElementById('view-patient').classList.add('hidden');
+1709: document.getElementById('view-caregiver').classList.add('hidden');
+1713: const login = document.getElementById('view-login');
+1764: const onboarding = document.getElementById('view-onboarding');
+1782: const patientView = document.getElementById('view-patient');
+1783: const caregiverView = document.getElementById('view-caregiver');
+1784: const calendarView = document.getElementById('view-calendar');
+2154: // Subscription Toggle Logic
+2160: const subPrices = document.querySelectorAll('#view-subscription .price');
+2161: const subPeriods = document.querySelectorAll('#view-subscription .price-period');
+2162: const subYearlyNotes = document.querySelectorAll('#view-subscription [data-yearly-note]');
