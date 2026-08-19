@@ -293,6 +293,88 @@ def create_medication(med_in: MedicationCreate, db: Session = Depends(get_db)):
 
 
 # ---------------------------------------------------------------------------
+# POST & GET /api/medications  — Global Stock Inventory
+# ---------------------------------------------------------------------------
+from pydantic import BaseModel
+import os
+import json
+
+STOCK_DB_FILE = "stock_db.json"
+
+class StockMedication(BaseModel):
+    gtin: str | None = None
+    name: str | None = None
+    batch_number: str | None = None
+    dosage: str | int | None = None
+    quantity: str | int | None = None
+    expiry_date: str | None = None
+
+def load_stock():
+    if os.path.exists(STOCK_DB_FILE):
+        try:
+            with open(STOCK_DB_FILE, "r") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return []
+
+def save_stock(data):
+    with open(STOCK_DB_FILE, "w") as f:
+        json.dump(data, f, indent=4)
+
+@app.post("/api/medications")
+def add_medication_to_stock(med: StockMedication):
+    stock = load_stock()
+    stock.append(med.dict())
+    save_stock(stock)
+    return {"status": "success", "data": med}
+
+@app.get("/api/medications")
+def get_stock_medications():
+    return load_stock()
+
+
+# ---------------------------------------------------------------------------
+# Calendar Tasks Endpoints
+# ---------------------------------------------------------------------------
+import datetime
+
+tasks_db = []
+task_counter = 1
+
+class TaskModel(BaseModel):
+    patient_name: str | None = None
+    medicine_name: str
+    dosage: int | str | None = None
+    time_slots: list[str]
+    repeat_days: list[str]
+
+@app.post("/api/tasks")
+def create_task(task: TaskModel):
+    global task_counter
+    new_task = task.dict()
+    new_task["id"] = task_counter
+    new_task["taken_dates"] = []
+    task_counter += 1
+    tasks_db.append(new_task)
+    return {"status": "success", "data": new_task}
+
+@app.get("/api/tasks")
+def get_tasks():
+    return tasks_db
+
+@app.put("/api/tasks/memory/{task_id}/take")
+def take_task_memory(task_id: int):
+    today_str = datetime.date.today().isoformat()
+    for task in tasks_db:
+        if task["id"] == task_id:
+            if today_str not in task["taken_dates"]:
+                task["taken_dates"].append(today_str)
+            return {"status": "success", "task_id": task_id, "taken_dates": task["taken_dates"]}
+    raise HTTPException(status_code=404, detail="Task not found")
+
+
+# ---------------------------------------------------------------------------
 # POST /api/analyze-medication  — AI Medicine Scanner (OpenAI)
 # ---------------------------------------------------------------------------
 
@@ -498,8 +580,15 @@ def get_today_schedule(user_id: int, db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @app.put(
+    "/api/tasks/{task_id}/take",
+    tags=["Adherence"],
+    summary="Mark a dose as taken (Alias)",
+)
+def mark_dose_taken_alias(task_id: int, db: Session = Depends(get_db)):
+    return mark_dose_taken(task_id, db)
+
+@app.put(
     "/adherence/{log_id}/take",
-    response_model=AdherenceLogResponse,
     tags=["Adherence"],
     summary="Mark a dose as taken",
 )
@@ -507,10 +596,6 @@ def mark_dose_taken(log_id: int, db: Session = Depends(get_db)):
     """
     Mark an adherence log entry as **taken** and decrement the associated
     medication's stock quantity by 1.
-
-    - Returns 404 if the log does not exist.
-    - Returns 400 if the dose was already taken.
-    - Returns 400 if stock is already at 0.
     """
     # Load the adherence log with its schedule → medication eagerly
     log = (
@@ -533,29 +618,24 @@ def mark_dose_taken(log_id: int, db: Session = Depends(get_db)):
         )
 
     if log.status == AdherenceStatus.taken:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="This dose has already been marked as taken.",
-        )
+        return {"status": "success", "task_id": log_id, "message": "Already marked as taken"}
 
     medication = log.schedule.medication
 
     if medication.stock_quantity <= 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"'{medication.name}' is out of stock (quantity = 0).",
-        )
+        # Don't error out completely, just mark it taken and maybe log it.
+        pass
+    else:
+        # Decrement stock
+        medication.stock_quantity -= 1
 
     # Update the log
     log.status = AdherenceStatus.taken
     log.logged_at = datetime.utcnow()
 
-    # Decrement stock
-    medication.stock_quantity -= 1
-
     db.commit()
     db.refresh(log)
-    return log
+    return {"status": "success", "task_id": log_id}
 
 
 # ---------------------------------------------------------------------------

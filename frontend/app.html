@@ -39,151 +39,262 @@
         /* ============================================================ */
         /* CALENDAR THEME                                               */
         /* ============================================================ */
-        :root{
-          --page-bg:      transparent;
-          --cell-bg:      rgba(255, 255, 255, 0.05);
-          --cell-lit-bg:  rgba(244, 63, 94, 0.15); /* rose-500 tint */
-          --cell-border:  rgba(255, 255, 255, 0.1);
-          --lit-border:   #f43f5e; /* rose-500 */
-          --glow:         #fda4af; /* rose-300 */
-          --glow-dim:     #f43f5e; /* rose-500 */
-          --text-dim:     rgba(255,255,255,0.4);
-          --text-lit:     #fff1f2; /* rose-50 */
-          --card-bg:      #ffe4e6; /* rose-100 */
-          --card-title:   #881337; /* rose-900 */
+        :root {
+            --page-bg: transparent;
+            --cell-bg: rgba(255, 255, 255, 0.05);
+            --cell-lit-bg: rgba(244, 63, 94, 0.15);
+            /* rose-500 tint */
+            --cell-border: rgba(255, 255, 255, 0.1);
+            --lit-border: #f43f5e;
+            /* rose-500 */
+            --glow: #fda4af;
+            /* rose-300 */
+            --glow-dim: #f43f5e;
+            /* rose-500 */
+            --text-dim: rgba(255, 255, 255, 0.4);
+            --text-lit: #fff1f2;
+            /* rose-50 */
+            --card-bg: #ffe4e6;
+            /* rose-100 */
+            --card-title: #881337;
+            /* rose-900 */
+        }
+
+        #view-calendar.block {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Calendar Column Dimming ──────────────────── */
+        #view-calendar .weekdays div.cal-dimmed {
+            opacity: 0.35;
+        }
+        #view-calendar .day.cal-dimmed {
+            opacity: 0.3;
+            filter: grayscale(40%);
+        }
+        #view-calendar .day.cal-today {
+            border: 1.5px solid rgba(244, 63, 94, 0.6);
+            box-shadow: 0 0 12px 2px rgba(244, 63, 94, 0.15);
+        }
+
+        /* ── Day Detail Popover ───────────────────────── */
+        .day-detail-popover {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            min-width: 200px;
+            max-width: 250px;
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 10px 12px;
+            z-index: 40;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+            animation: fadeInUp 0.2s ease;
+        }
+        .day-detail-popover::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: rgba(0,0,0,0.92);
+        }
+        .day-detail-popover .med-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+        .day-detail-popover .med-item:last-child { border-bottom: none; }
+        .day-detail-popover .med-item.taken { opacity: 0.45; text-decoration: line-through; }
+        .day-detail-popover .med-check {
+            width: 16px; height: 16px;
+            border-radius: 4px;
+            border: 1.5px solid rgba(255,255,255,0.3);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        .day-detail-popover .med-item.taken .med-check {
+            background: #10b981;
+            border-color: #10b981;
+        }
+
+        #view-calendar .calendar {
+            width: 100%;
+            max-width: none;
+            height: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+            background: var(--page-bg);
+            border-radius: 12px;
+            padding: 18px;
+            position: relative;
+        }
+
+        #view-calendar .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 7px;
+            margin-bottom: 8px;
+        }
+
+        #view-calendar .weekdays div {
+            text-align: left;
+            padding-left: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        #view-calendar .grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            flex: 1;
+            gap: 7px;
+            position: relative;
+        }
+
+        #view-calendar .day {
+            border-radius: 10px;
+            background: var(--cell-bg);
+            border: 1px solid var(--cell-border);
+            padding: 6px 0 0 7px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dim);
+            position: relative;
+            cursor: pointer;
+            overflow: visible;
+            transition: all 0.2s;
+        }
+
+        #view-calendar .day:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #view-calendar .day.muted {
+            visibility: hidden;
+        }
+
+        #view-calendar .day-num {
+            position: relative;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        #view-calendar .day.lit {
+            background: var(--cell-lit-bg);
+            border: 1px solid var(--lit-border);
+            color: var(--text-lit);
+            box-shadow:
+                0 0 12px 0px rgba(244, 63, 94, 0.3),
+                0 0 25px 4px rgba(244, 63, 94, 0.15);
+        }
+
+        #view-calendar .day.lit .surface {
+            position: absolute;
+            inset: 0;
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        #view-calendar .day.lit .surface::before {
+            content: "";
+            position: absolute;
+            left: -20%;
+            right: -20%;
+            bottom: -20%;
+            height: 90%;
+            background: radial-gradient(ellipse at bottom, rgba(244, 63, 94, 0.4) 0%, rgba(244, 63, 94, 0.15) 40%, rgba(244, 63, 94, 0) 75%);
+        }
+
+        #view-calendar .glowbar {
+            position: absolute;
+            left: 14%;
+            right: 14%;
+            bottom: 3px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--glow);
+            z-index: 3;
+            filter: blur(2px);
+            opacity: 0.9;
+            box-shadow:
+                0 0 8px 3px rgba(244, 63, 94, 0.6),
+                0 0 20px 8px rgba(244, 63, 94, 0.3);
+        }
+
+        #view-calendar .day.selected {
+            box-shadow:
+                0 0 0 1.5px rgba(244, 63, 94, 0.8),
+                0 0 20px 4px rgba(244, 63, 94, 0.5);
+        }
+
+        #view-calendar .fab {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background: linear-gradient(to right, #f43f5e, #800020);
+            color: white;
+            border: none;
+            border-radius: 999px;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 24px -6px rgba(0, 0, 0, 0.5);
+            transition: opacity 0.2s;
+        }
+
+        #view-calendar .fab:hover {
+            opacity: 0.9;
+        }
+
+        /* ── Day Med Names (Marquee) ──────────────────── */
+        .day-meds-container {
+            position: absolute;
+            bottom: 4px;
+            left: 4px;
+            right: 4px;
+            overflow: hidden;
+            white-space: nowrap;
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        }
+
+        .day-meds-text {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.95);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+            animation: marquee 5s linear infinite;
         }
         
-        #view-calendar.block {
-          display: flex;
-          flex-direction: column;
+        .day:not(.lit) .day-meds-text {
+            color: rgba(255, 255, 255, 0.5);
+            text-shadow: none;
         }
 
-        #view-calendar .calendar{
-          width: 100%;
-          max-width: none;
-          height: 100%;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          margin: 0 auto;
-          background: var(--page-bg);
-          border-radius: 12px;
-          padding: 18px;
-          position: relative;
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
         }
-
-        #view-calendar .weekdays{
-          display:grid;
-          grid-template-columns: repeat(7, 1fr);
-          gap: 7px;
-          margin-bottom: 8px;
-        }
-
-        #view-calendar .weekdays div{
-          text-align:left;
-          padding-left: 3px;
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.08em;
-          color: var(--text-dim);
-          text-transform: uppercase;
-        }
-
-        #view-calendar .grid{
-          display:grid;
-          grid-template-columns: repeat(7, 1fr);
-          grid-template-rows: repeat(5, 1fr);
-          flex: 1;
-          gap: 7px;
-          position: relative;
-        }
-
-        #view-calendar .day{
-          border-radius: 10px;
-          background: var(--cell-bg);
-          border: 1px solid var(--cell-border);
-          padding: 6px 0 0 7px;
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--text-dim);
-          position: relative;
-          cursor: pointer;
-          overflow: visible;
-          transition: all 0.2s;
-        }
-        #view-calendar .day:hover {
-          background: rgba(255,255,255,0.1);
-        }
-
-        #view-calendar .day.muted{ visibility: hidden; }
-
-        #view-calendar .day-num{ position:relative; z-index:2; pointer-events:none; }
-
-        #view-calendar .day.lit{
-          background: var(--cell-lit-bg);
-          border: 1px solid var(--lit-border);
-          color: var(--text-lit);
-          box-shadow:
-            0 0 12px 0px rgba(244, 63, 94, 0.3),
-            0 0 25px 4px rgba(244, 63, 94, 0.15);
-        }
-
-        #view-calendar .day.lit .surface{
-          position:absolute;
-          inset:0;
-          border-radius:10px;
-          overflow:hidden;
-          z-index:1;
-        }
-
-        #view-calendar .day.lit .surface::before{
-          content:"";
-          position:absolute;
-          left:-20%;
-          right:-20%;
-          bottom:-20%;
-          height:90%;
-          background: radial-gradient(ellipse at bottom, rgba(244,63,94,0.4) 0%, rgba(244,63,94,0.15) 40%, rgba(244,63,94,0) 75%);
-        }
-
-        #view-calendar .glowbar{
-          position:absolute;
-          left: 14%;
-          right: 14%;
-          bottom: 3px;
-          height: 4px;
-          border-radius: 50%;
-          background: var(--glow);
-          z-index: 3;
-          filter: blur(2px);
-          opacity: 0.9;
-          box-shadow:
-            0 0 8px 3px rgba(244,63,94,0.6),
-            0 0 20px 8px rgba(244,63,94,0.3);
-        }
-
-        #view-calendar .day.selected{
-          box-shadow:
-            0 0 0 1.5px rgba(244,63,94,0.8),
-            0 0 20px 4px rgba(244,63,94,0.5);
-        }
-
-        #view-calendar .fab{
-          position:absolute;
-          bottom: 16px;
-          right: 16px;
-          background: linear-gradient(to right, #f43f5e, #800020);
-          color: white;
-          border:none;
-          border-radius: 999px;
-          padding: 10px 20px;
-          font-size: 13px;
-          font-weight: 700;
-          cursor:pointer;
-          box-shadow: 0 10px 24px -6px rgba(0,0,0,0.5);
-          transition: opacity 0.2s;
-        }
-        #view-calendar .fab:hover{ opacity: 0.9; }
 
         /* ── Animations ─────────────────────────────────── */
         @keyframes fadeInUp {
@@ -454,7 +565,7 @@
 
         /* ── Subscription Toggle ────────────────────────── */
         .sub-toggle-btn {
-            color: rgba(255,255,255,0.6);
+            color: rgba(255, 255, 255, 0.6);
             border: none;
             background: transparent;
             font-family: inherit;
@@ -469,10 +580,11 @@
             gap: 7px;
             white-space: nowrap;
         }
+
         .sub-toggle-btn.active {
             background: linear-gradient(to right, #f43f5e, #800020);
             color: #fff;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
     </style>
 </head>
@@ -531,8 +643,7 @@
 
                     <!-- Role -->
                     <div class="mb-6">
-                        <label for="signup-role"
-                            class="block text-sm font-semibold text-gray-700 mb-1.5">Role</label>
+                        <label for="signup-role" class="block text-sm font-semibold text-gray-700 mb-1.5">Role</label>
                         <select id="signup-role" required
                             class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-sm transition-all duration-150">
                             <option value="patient">Patient</option>
@@ -683,8 +794,10 @@
             <div class="bg-white rounded-2xl shadow-xl p-8">
                 <!-- Header -->
                 <div class="text-center mb-8">
-                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r from-[#f43f5e] to-[#800020] mb-4 shadow-lg">
-                        <svg class="h-8 w-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <div
+                        class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r from-[#f43f5e] to-[#800020] mb-4 shadow-lg">
+                        <svg class="h-8 w-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <polygon points="12 2 22 22 2 22"></polygon>
                             <polyline points="2 12 22 12"></polyline>
                             <line x1="12" y1="2" x2="12" y2="22"></line>
@@ -696,18 +809,22 @@
 
                 <!-- Display Name -->
                 <div class="mb-5">
-                    <label for="onboard-display-name" class="block text-sm font-semibold text-gray-700 mb-1.5">What should we call you?</label>
-                    <input type="text" id="onboard-display-name" placeholder="e.g. Mom, Dad, Pekky" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f43f5e]/40 focus:border-[#f43f5e] focus:bg-white text-sm transition-all duration-150">
+                    <label for="onboard-display-name" class="block text-sm font-semibold text-gray-700 mb-1.5">What
+                        should we call you?</label>
+                    <input type="text" id="onboard-display-name" placeholder="e.g. Mom, Dad, Pekky"
+                        class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f43f5e]/40 focus:border-[#f43f5e] focus:bg-white text-sm transition-all duration-150">
                 </div>
 
                 <!-- Family Mode Toggle -->
                 <div class="mb-5">
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Family Setup</label>
                     <div class="grid grid-cols-2 gap-2">
-                        <button type="button" id="onboard-create-btn" onclick="setOnboardMode('create')" class="py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all duration-200 bg-gradient-to-r from-[#f43f5e] to-[#800020] text-white border-transparent shadow-md">
+                        <button type="button" id="onboard-create-btn" onclick="setOnboardMode('create')"
+                            class="py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all duration-200 bg-gradient-to-r from-[#f43f5e] to-[#800020] text-white border-transparent shadow-md">
                             🏠 Create New Family
                         </button>
-                        <button type="button" id="onboard-join-btn" onclick="setOnboardMode('join')" class="py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all duration-200 bg-white text-gray-600 border-gray-200 hover:border-gray-300">
+                        <button type="button" id="onboard-join-btn" onclick="setOnboardMode('join')"
+                            class="py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all duration-200 bg-white text-gray-600 border-gray-200 hover:border-gray-300">
                             🤝 Join Existing
                         </button>
                     </div>
@@ -715,18 +832,22 @@
 
                 <!-- Family Name / Family Code -->
                 <div class="mb-6" id="onboard-family-field">
-                    <label for="onboard-family-name" id="onboard-family-label" class="block text-sm font-semibold text-gray-700 mb-1.5">Family Name</label>
-                    <input type="text" id="onboard-family-name" placeholder="e.g. The Smith Family" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f43f5e]/40 focus:border-[#f43f5e] focus:bg-white text-sm transition-all duration-150">
+                    <label for="onboard-family-name" id="onboard-family-label"
+                        class="block text-sm font-semibold text-gray-700 mb-1.5">Family Name</label>
+                    <input type="text" id="onboard-family-name" placeholder="e.g. The Smith Family"
+                        class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f43f5e]/40 focus:border-[#f43f5e] focus:bg-white text-sm transition-all duration-150">
                 </div>
 
                 <!-- Create Household Button -->
-                <button type="button" id="onboard-submit-btn" onclick="completeOnboarding()" class="w-full py-3 rounded-lg bg-gradient-to-r from-[#f43f5e] to-[#800020] text-white font-bold text-sm shadow-lg hover:shadow-xl hover:opacity-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#f43f5e]/50 focus:ring-offset-2">
+                <button type="button" id="onboard-submit-btn" onclick="completeOnboarding()"
+                    class="w-full py-3 rounded-lg bg-gradient-to-r from-[#f43f5e] to-[#800020] text-white font-bold text-sm shadow-lg hover:shadow-xl hover:opacity-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#f43f5e]/50 focus:ring-offset-2">
                     ✨ Create Household
                 </button>
 
                 <!-- Logout Link -->
                 <div class="text-center mt-5">
-                    <button type="button" onclick="handleLogout()" class="text-sm text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none">
+                    <button type="button" onclick="handleLogout()"
+                        class="text-sm text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none">
                         🚪 Logout / Switch Account
                     </button>
                 </div>
@@ -741,51 +862,84 @@
     <!-- ============================================================ -->
     <!-- APP SHELL                                                    -->
     <!-- ============================================================ -->
-    <div id="app-shell" class="hidden h-screen flex bg-gradient-to-r from-[#f43f5e] to-black text-white overflow-hidden">
+    <div id="app-shell"
+        class="hidden h-screen flex bg-gradient-to-r from-[#f43f5e] to-black text-white overflow-hidden">
 
         <!-- Expandable Sidebar -->
-        <aside class="group w-20 hover:w-64 min-h-screen bg-white/10 backdrop-blur-2xl border-r border-white/25 flex flex-col justify-between py-8 px-4 transition-all duration-300 z-50 relative overflow-hidden" onmouseleave="document.getElementById('familyDropdownMenu').classList.add('hidden')">
+        <aside
+            class="group w-20 hover:w-64 min-h-screen bg-white/10 backdrop-blur-2xl border-r border-white/25 flex flex-col justify-between py-8 px-4 transition-all duration-300 z-50 relative overflow-hidden"
+            onmouseleave="document.getElementById('familyDropdownMenu').classList.add('hidden')">
             <!-- Top Section -->
             <div class="flex flex-col gap-6">
                 <!-- Logo -->
                 <div class="flex items-center space-x-3 px-1">
-                    <div class="w-10 h-10 rounded-xl bg-white/20 border border-white/30 flex-shrink-0 flex items-center justify-center shadow-md">
-                        <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-white/20 border border-white/30 flex-shrink-0 flex items-center justify-center shadow-md">
+                        <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <polygon points="12 2 22 22 2 22"></polygon>
                             <polyline points="2 12 22 12"></polyline>
                             <line x1="12" y1="2" x2="12" y2="22"></line>
                         </svg>
                     </div>
-                    <span class="font-bold text-white text-xl tracking-tight opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">CoreFour</span>
+                    <span
+                        class="font-bold text-white text-xl tracking-tight opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">CoreFour</span>
                 </div>
-                
+
                 <!-- Dashboard Button -->
-                <button id="nav-dashboard" onclick="switchView('patient')" class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer">
+                <button id="nav-dashboard" onclick="switchView('patient')"
+                    class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer">
                     <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">🏠</div>
-                    <span class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Dashboard</span>
+                    <span
+                        class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Dashboard</span>
                 </button>
-                
+
                 <!-- Family Button Container -->
                 <div class="relative mt-2">
-                    <button onclick="document.getElementById('familyDropdownMenu').classList.toggle('hidden')" class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer">
+                    <button onclick="document.getElementById('familyDropdownMenu').classList.toggle('hidden')"
+                        class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer">
                         <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">👥</div>
-                        <span class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Family</span>
-                        <svg class="w-4 h-4 text-white/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        <span
+                            class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Family</span>
+                        <svg class="w-4 h-4 text-white/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-shrink-0"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
                     </button>
-                    
+
                     <!-- Dropdown Menu -->
-                    <div id="familyDropdownMenu" class="hidden mt-2 w-full bg-black/90 backdrop-blur-2xl border border-white/25 rounded-xl shadow-2xl overflow-hidden flex-col z-50">
-                        <div class="p-3 text-sm text-white hover:bg-white/20 border-b border-white/10 whitespace-nowrap cursor-pointer font-medium">Pekky (Active)</div>
-                        <div class="p-3 text-sm text-white hover:bg-white/20 border-b border-white/10 whitespace-nowrap cursor-pointer">Mom</div>
-                        <div class="p-3 text-sm text-white hover:bg-white/20 border-b border-white/10 whitespace-nowrap cursor-pointer">Dad</div>
-                        <div class="p-3 text-sm text-gray-300 hover:text-white hover:bg-white/20 font-semibold whitespace-nowrap cursor-pointer">+ Add Member</div>
+                    <div id="familyDropdownMenu"
+                        class="hidden mt-2 w-full bg-black/90 backdrop-blur-2xl border border-white/25 rounded-xl shadow-2xl overflow-hidden flex-col z-50">
+                        <div
+                            class="p-3 text-sm text-white hover:bg-white/20 border-b border-white/10 whitespace-nowrap cursor-pointer font-medium">
+                            Pekky (Active)</div>
+                        <div
+                            class="p-3 text-sm text-white hover:bg-white/20 border-b border-white/10 whitespace-nowrap cursor-pointer">
+                            Mom</div>
+                        <div
+                            class="p-3 text-sm text-white hover:bg-white/20 border-b border-white/10 whitespace-nowrap cursor-pointer">
+                            Dad</div>
+                        <div
+                            class="p-3 text-sm text-gray-300 hover:text-white hover:bg-white/20 font-semibold whitespace-nowrap cursor-pointer">
+                            + Add Member</div>
                     </div>
                 </div>
 
                 <!-- Calendar Button -->
-                <button id="nav-calendar" onclick="switchView('calendar')" class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer mt-2">
+                <button id="nav-calendar" onclick="switchView('calendar')"
+                    class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer mt-2">
                     <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">📅</div>
-                    <span class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Calendar</span>
+                    <span
+                        class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Calendar</span>
+                </button>
+
+                <!-- Stock Inventory Button -->
+                <button id="nav-stock" onclick="switchView('stock')"
+                    class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer mt-2">
+                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">📦</div>
+                    <span
+                        class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Inventory</span>
                 </button>
 
                 <!-- Dummy hidden tabs to not break JS -->
@@ -796,15 +950,19 @@
             <!-- Bottom: Subscription & Logout -->
             <div class="w-full">
                 <!-- Subscription Button -->
-                <button id="nav-subscription" onclick="switchView('subscription')" class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer mb-3">
+                <button id="nav-subscription" onclick="switchView('subscription')"
+                    class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer mb-3">
                     <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">💎</div>
-                    <span class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Subscription</span>
+                    <span
+                        class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Subscription</span>
                 </button>
 
                 <!-- Logout -->
-                <button id="logout-btn" onclick="handleLogout()" class="flex items-center space-x-3 p-3 w-full border border-white/20 bg-white/5 hover:bg-red-500/30 rounded-xl transition-all text-white cursor-pointer shadow-sm">
+                <button id="logout-btn" onclick="handleLogout()"
+                    class="flex items-center space-x-3 p-3 w-full border border-white/20 bg-white/5 hover:bg-red-500/30 rounded-xl transition-all text-white cursor-pointer shadow-sm">
                     <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">🚪</div>
-                    <span class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap text-left">Logout</span>
+                    <span
+                        class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap text-left">Logout</span>
                 </button>
             </div>
         </aside>
@@ -823,13 +981,15 @@
 
                 <!-- Two-Column Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
-                    
+
                     <!-- LEFT COLUMN (1/3) -->
                     <div class="col-span-1 space-y-8">
-                        
+
                         <!-- Daily Adherence Card -->
-                        <div class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl p-6 text-white text-center">
-                            <h3 class="text-sm font-semibold text-white/80 uppercase tracking-wider mb-2">Meds Taken</h3>
+                        <div
+                            class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl p-6 text-white text-center">
+                            <h3 class="text-sm font-semibold text-white/80 uppercase tracking-wider mb-2">Meds Taken
+                            </h3>
                             <div class="text-5xl font-extrabold mb-4">0/0</div>
                             <div class="flex justify-between border-t border-white/10 pt-4 text-sm font-medium">
                                 <span class="text-yellow-400">0 Pending</span>
@@ -838,42 +998,56 @@
                         </div>
 
                         <!-- Stock Health Card -->
-                        <div class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl p-6 text-white text-center">
-                            <h3 class="text-sm font-semibold text-white/80 uppercase tracking-wider mb-4">Stock Health</h3>
+                        <div
+                            class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl p-6 text-white text-center">
+                            <h3 class="text-sm font-semibold text-white/80 uppercase tracking-wider mb-4">Stock Health
+                            </h3>
                             <div class="flex justify-between space-x-2">
-                                <div class="bg-red-500/20 border border-red-500/30 text-red-100 rounded-lg py-2 px-2 flex-1 flex flex-col items-center">
+                                <div
+                                    class="bg-red-500/20 border border-red-500/30 text-red-100 rounded-lg py-2 px-2 flex-1 flex flex-col items-center">
                                     <span class="text-lg font-bold">0</span>
-                                    <span class="text-[10px] mt-1 text-red-200 uppercase tracking-wider font-semibold">Expired</span>
+                                    <span
+                                        class="text-[10px] mt-1 text-red-200 uppercase tracking-wider font-semibold">Expired</span>
                                 </div>
-                                <div class="bg-yellow-500/20 border border-yellow-500/30 text-yellow-100 rounded-lg py-2 px-2 flex-1 flex flex-col items-center">
+                                <div
+                                    class="bg-yellow-500/20 border border-yellow-500/30 text-yellow-100 rounded-lg py-2 px-2 flex-1 flex flex-col items-center">
                                     <span class="text-lg font-bold">3</span>
-                                    <span class="text-[10px] mt-1 text-yellow-200 uppercase tracking-wider font-semibold">Soon</span>
+                                    <span
+                                        class="text-[10px] mt-1 text-yellow-200 uppercase tracking-wider font-semibold">Soon</span>
                                 </div>
-                                <div class="bg-emerald-500/20 border border-emerald-500/30 text-emerald-100 rounded-lg py-2 px-2 flex-1 flex flex-col items-center">
+                                <div
+                                    class="bg-emerald-500/20 border border-emerald-500/30 text-emerald-100 rounded-lg py-2 px-2 flex-1 flex flex-col items-center">
                                     <span class="text-lg font-bold">0</span>
-                                    <span class="text-[10px] mt-1 text-emerald-200 uppercase tracking-wider font-semibold">Healthy</span>
+                                    <span
+                                        class="text-[10px] mt-1 text-emerald-200 uppercase tracking-wider font-semibold">Healthy</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Quick Ask Gemini Card -->
-                        <div class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl p-6 text-white text-center">
-                            <h3 class="text-sm font-semibold text-white/80 uppercase tracking-wider mb-4">Quick Ask Gemini</h3>
-                            <button class="w-full py-3 bg-gradient-to-r from-blue-500/20 to-purple-500/20 hover:from-blue-500/30 hover:to-purple-500/30 border border-white/30 rounded-xl font-medium text-sm transition-all flex items-center justify-center space-x-2 focus:outline-none">
+                        <div
+                            class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl p-6 text-white text-center">
+                            <h3 class="text-sm font-semibold text-white/80 uppercase tracking-wider mb-4">Quick Ask
+                                Gemini</h3>
+                            <button
+                                class="w-full py-3 bg-gradient-to-r from-blue-500/20 to-purple-500/20 hover:from-blue-500/30 hover:to-purple-500/30 border border-white/30 rounded-xl font-medium text-sm transition-all flex items-center justify-center space-x-2 focus:outline-none">
                                 <span class="text-yellow-400">⚡</span>
                                 <span>Side Effects?</span>
                             </button>
                         </div>
-                        
+
                     </div>
 
                     <!-- RIGHT COLUMN (2/3) -->
                     <div class="col-span-1 md:col-span-2 flex flex-col">
                         <!-- Schedule Card -->
-                        <section class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl overflow-hidden flex-1 flex flex-col">
-                            <div class="border-b border-white/10 px-6 py-4 flex justify-between items-center bg-white/5">
+                        <section
+                            class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl overflow-hidden flex-1 flex flex-col">
+                            <div
+                                class="border-b border-white/10 px-6 py-4 flex justify-between items-center bg-white/5">
                                 <div class="flex items-center space-x-2.5">
-                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -893,8 +1067,8 @@
                                 <div id="schedule-container" class="space-y-3 text-white flex-1">
                                     <!-- Loading State -->
                                     <div class="flex justify-center items-center py-12">
-                                        <svg class="animate-spin mr-3 h-5 w-5 text-white/70" xmlns="http://www.w3.org/2000/svg"
-                                            fill="none" viewBox="0 0 24 24">
+                                        <svg class="animate-spin mr-3 h-5 w-5 text-white/70"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                                 stroke-width="4"></circle>
                                             <path class="opacity-75" fill="currentColor"
@@ -905,7 +1079,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Support Footer inside card -->
                             <div class="border-t border-white/10 p-4 mt-auto text-center bg-black/10">
                                 <p class="text-xs text-white/60">Support & Queries · 1-800-CORE-FOUR</p>
@@ -918,7 +1092,7 @@
             <!-- Dummy hidden caregiver view so JS doesn't break -->
             <div id="view-caregiver" class="hidden"></div>
             <h1 id="caregiver-welcome" class="hidden"></h1>
-            
+
             <!-- ========================================== -->
             <!-- CALENDAR VIEW                              -->
             <!-- ========================================== -->
@@ -929,13 +1103,158 @@
                 </header>
 
                 <div class="calendar" id="calendar">
-                    <div class="weekdays">
-                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                    <div class="weekdays" id="calendar-weekdays">
+                        <div>Sun</div>
+                        <div>Mon</div>
+                        <div>Tue</div>
+                        <div>Wed</div>
+                        <div>Thu</div>
+                        <div>Fri</div>
+                        <div>Sat</div>
                     </div>
                     <div class="grid" id="calendar-grid"></div>
-                    <button class="fab">+ Add task</button>
+                    <button class="fab" onclick="openAddTaskModal()">+ Add task</button>
                 </div>
             </div>
+
+            <!-- ========================================== -->
+            <!-- ADD TASK MODAL                             -->
+            <!-- ========================================== -->
+            <div id="modal-add-task" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeAddTaskModal()"></div>
+                <div class="relative z-10 bg-gray-900/50 backdrop-blur-2xl border border-white/20 text-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up m-4 max-h-[90vh] overflow-y-auto">
+                    <!-- Header -->
+                    <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5 sticky top-0 z-10">
+                        <h3 class="text-lg font-bold text-white">Add to Schedule</h3>
+                        <button onclick="closeAddTaskModal()" class="text-white/70 hover:text-white transition-colors focus:outline-none">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <form id="add-task-form" onsubmit="handleAddTask(event)">
+                            <!-- Schedule For -->
+                            <div class="mb-5">
+                                <label class="block text-sm font-semibold text-white mb-1.5">Schedule for</label>
+                                <select id="task-user" class="w-full px-3 py-2.5 bg-black/20 border border-white/10 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-black/40 backdrop-blur-sm text-sm transition-all duration-150 [color-scheme:dark]">
+                                    <option value="current">Current User</option>
+                                </select>
+                            </div>
+                            <!-- Medicine Name -->
+                            <div class="mb-5">
+                                <label class="block text-sm font-semibold text-white mb-1.5">Medicine Name</label>
+                                <input type="text" id="task-med-name" required placeholder="e.g. Amoxicillin" class="w-full px-3 py-2.5 bg-black/20 border border-white/10 text-white placeholder-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-black/40 backdrop-blur-sm text-sm transition-all duration-150">
+                            </div>
+                            <!-- Dosage -->
+                            <div class="mb-5">
+                                <label class="block text-sm font-semibold text-white mb-1.5">Dosage (mg)</label>
+                                <input type="number" id="task-dosage" required placeholder="e.g. 500" class="w-full px-3 py-2.5 bg-black/20 border border-white/10 text-white placeholder-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-black/40 backdrop-blur-sm text-sm transition-all duration-150">
+                            </div>
+                            <!-- Time Slots -->
+                            <div class="mb-5">
+                                <label class="block text-sm font-semibold text-white mb-1.5">Time Slots</label>
+                                <div id="task-time-slots" class="space-y-2"></div>
+                                <button type="button" onclick="addTimeSlot()" class="mt-2 px-3 py-1.5 text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 rounded-lg transition-colors">+ Add Time</button>
+                            </div>
+                            <!-- Repeat Days -->
+                            <div class="mb-6">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="block text-sm font-semibold text-white">Repeat Days</label>
+                                    <label class="flex items-center gap-1.5 cursor-pointer">
+                                        <input type="checkbox" id="task-select-all-days" onchange="toggleAllDays(this.checked)" class="w-3.5 h-3.5 accent-[#f43f5e] rounded">
+                                        <span class="text-xs text-white/60 font-medium">Select All</span>
+                                    </label>
+                                </div>
+                                <div id="task-day-pills" class="flex flex-wrap gap-2">
+                                    <button type="button" data-day="Mon" onclick="toggleDayPill(this)" class="day-pill px-3.5 py-1.5 rounded-full text-xs font-bold border border-white/20 bg-white/5 text-white/60 transition-all hover:bg-white/10">Mon</button>
+                                    <button type="button" data-day="Tue" onclick="toggleDayPill(this)" class="day-pill px-3.5 py-1.5 rounded-full text-xs font-bold border border-white/20 bg-white/5 text-white/60 transition-all hover:bg-white/10">Tue</button>
+                                    <button type="button" data-day="Wed" onclick="toggleDayPill(this)" class="day-pill px-3.5 py-1.5 rounded-full text-xs font-bold border border-white/20 bg-white/5 text-white/60 transition-all hover:bg-white/10">Wed</button>
+                                    <button type="button" data-day="Thu" onclick="toggleDayPill(this)" class="day-pill px-3.5 py-1.5 rounded-full text-xs font-bold border border-white/20 bg-white/5 text-white/60 transition-all hover:bg-white/10">Thu</button>
+                                    <button type="button" data-day="Fri" onclick="toggleDayPill(this)" class="day-pill px-3.5 py-1.5 rounded-full text-xs font-bold border border-white/20 bg-white/5 text-white/60 transition-all hover:bg-white/10">Fri</button>
+                                    <button type="button" data-day="Sat" onclick="toggleDayPill(this)" class="day-pill px-3.5 py-1.5 rounded-full text-xs font-bold border border-white/20 bg-white/5 text-white/60 transition-all hover:bg-white/10">Sat</button>
+                                    <button type="button" data-day="Sun" onclick="toggleDayPill(this)" class="day-pill px-3.5 py-1.5 rounded-full text-xs font-bold border border-white/20 bg-white/5 text-white/60 transition-all hover:bg-white/10">Sun</button>
+                                </div>
+                            </div>
+                            <!-- Buttons -->
+                            <div class="flex justify-end space-x-3">
+                                <button type="button" onclick="closeAddTaskModal()" class="px-4 py-2.5 text-sm font-semibold text-white/80 bg-white/10 border border-white/20 hover:bg-white/20 rounded-xl transition-colors focus:outline-none">Cancel</button>
+                                <button type="submit" class="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-[#f43f5e] to-[#800020] border border-white/20 hover:opacity-90 rounded-xl shadow-sm transition-opacity focus:outline-none focus:ring-2 focus:ring-white/50">Add to Schedule</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- STOCK INVENTORY VIEW                       -->
+            <!-- ========================================== -->
+            <div id="view-stock" class="hidden animate-fade-in-up w-full h-full">
+                <header class="mb-8">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                            <h1 class="text-3xl font-bold text-white tracking-tight">Stock Inventory</h1>
+                            <p class="text-white/70 mt-1 text-base">All saved medications at a glance.</p>
+                        </div>
+                        <button onclick="openAddMedModal()"
+                            class="self-start px-5 py-2.5 bg-gradient-to-r from-[#f43f5e] to-[#800020] text-white border border-white/20 hover:opacity-90 text-sm font-semibold rounded-xl transition-opacity focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            <span>Add Medication</span>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Summary Stats Row -->
+                <div id="stock-summary" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-5 text-center">
+                        <p class="text-xs font-semibold text-white/60 uppercase tracking-wider mb-1">Total Items</p>
+                        <p id="stock-stat-total" class="text-3xl font-extrabold text-white">0</p>
+                    </div>
+                    <div class="bg-emerald-500/10 backdrop-blur-xl border border-emerald-500/30 rounded-2xl p-5 text-center">
+                        <p class="text-xs font-semibold text-emerald-300/80 uppercase tracking-wider mb-1">Healthy</p>
+                        <p id="stock-stat-healthy" class="text-3xl font-extrabold text-emerald-400">0</p>
+                    </div>
+                    <div class="bg-amber-500/10 backdrop-blur-xl border border-amber-500/30 rounded-2xl p-5 text-center">
+                        <p class="text-xs font-semibold text-amber-300/80 uppercase tracking-wider mb-1">Expiring Soon</p>
+                        <p id="stock-stat-soon" class="text-3xl font-extrabold text-amber-400">0</p>
+                    </div>
+                    <div class="bg-red-500/10 backdrop-blur-xl border border-red-500/30 rounded-2xl p-5 text-center">
+                        <p class="text-xs font-semibold text-red-300/80 uppercase tracking-wider mb-1">Expired</p>
+                        <p id="stock-stat-expired" class="text-3xl font-extrabold text-red-400">0</p>
+                    </div>
+                </div>
+
+                <!-- Stock Table Card -->
+                <div class="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl overflow-hidden">
+                    <div class="border-b border-white/10 px-6 py-4 flex justify-between items-center bg-white/5">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="text-xl">📦</span>
+                            <h2 class="text-lg font-semibold text-white">Medication Stock</h2>
+                        </div>
+                        <span id="stock-count-badge" class="text-xs font-bold bg-white/10 border border-white/20 text-white/80 px-3 py-1 rounded-full">0 items</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-white/10 bg-white/[0.03]">
+                                    <th class="px-6 py-3.5 text-xs font-bold text-white/50 uppercase tracking-wider">Medicine</th>
+                                    <th class="px-6 py-3.5 text-xs font-bold text-white/50 uppercase tracking-wider">GTIN</th>
+                                    <th class="px-6 py-3.5 text-xs font-bold text-white/50 uppercase tracking-wider">Batch</th>
+                                    <th class="px-6 py-3.5 text-xs font-bold text-white/50 uppercase tracking-wider">Dosage</th>
+                                    <th class="px-6 py-3.5 text-xs font-bold text-white/50 uppercase tracking-wider text-center">Qty</th>
+                                    <th class="px-6 py-3.5 text-xs font-bold text-white/50 uppercase tracking-wider">Expiry</th>
+                                    <th class="px-6 py-3.5 text-xs font-bold text-white/50 uppercase tracking-wider text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stock-table-body">
+                                <tr><td colspan="7" class="px-6 py-16 text-center text-white/50 text-sm">Loading inventory…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="border-t border-white/10 p-4 text-center bg-black/10">
+                        <p class="text-xs text-white/50">Data refreshes each time you open this page.</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- ========================================== -->
             <!-- ADD MEDICATION MODAL                       -->
             <!-- ========================================== -->
@@ -1002,15 +1321,15 @@
                         <form id="add-med-form" onsubmit="handleSaveMedication(event)">
                             <div class="space-y-4">
                                 <div>
-                                    <label for="med-gtin"
-                                        class="block text-sm font-semibold text-white mb-1.5">Product GTIN</label>
+                                    <label for="med-gtin" class="block text-sm font-semibold text-white mb-1.5">Product
+                                        GTIN</label>
                                     <input type="text" id="med-gtin"
                                         class="w-full px-3 py-2.5 bg-black/20 border border-white/10 text-white placeholder-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-black/40 backdrop-blur-sm text-sm transition-all duration-150"
                                         placeholder="e.g. 5012345678901">
                                 </div>
                                 <div>
-                                    <label for="med-name"
-                                        class="block text-sm font-semibold text-white mb-1.5">Medicine Name</label>
+                                    <label for="med-name" class="block text-sm font-semibold text-white mb-1.5">Medicine
+                                        Name</label>
                                     <input type="text" id="med-name" required
                                         class="w-full px-3 py-2.5 bg-black/20 border border-white/10 text-white placeholder-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-black/40 backdrop-blur-sm text-sm transition-all duration-150"
                                         placeholder="e.g. Amoxicillin">
@@ -1024,7 +1343,8 @@
                                             placeholder="e.g. BN2024X">
                                     </div>
                                     <div>
-                                        <label for="med-dosage" class="block text-sm font-semibold text-white mb-1.5">Dosage
+                                        <label for="med-dosage"
+                                            class="block text-sm font-semibold text-white mb-1.5">Dosage
                                             (mg)</label>
                                         <input type="number" id="med-dosage" required
                                             class="w-full px-3 py-2.5 bg-black/20 border border-white/10 text-white placeholder-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-black/40 backdrop-blur-sm text-sm transition-all duration-150"
@@ -1044,8 +1364,8 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <label for="med-expiry"
-                                        class="block text-sm font-semibold text-white mb-1.5">Expiry Date</label>
+                                    <label for="med-expiry" class="block text-sm font-semibold text-white mb-1.5">Expiry
+                                        Date</label>
                                     <input type="date" id="med-expiry"
                                         class="w-full px-3 py-2.5 bg-black/20 border border-white/10 text-white placeholder-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-black/40 backdrop-blur-sm text-sm transition-all duration-150 [color-scheme:dark]">
                                 </div>
@@ -1063,154 +1383,261 @@
                 </div>
             </div>
 
-        <!-- ============================================================ -->
-    <!-- SUBSCRIPTION MODAL                                           -->
-    <!-- ============================================================ -->
-    <div id="view-subscription" class="hidden animate-fade-in-up w-full h-full flex items-start justify-center overflow-y-auto py-10">
-        <div class="relative w-full max-w-5xl mx-auto px-6 py-16">
-            <!-- Header -->
-            <div class="text-center mb-10">
-                <div class="inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-rose-400 mb-5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.7)] animate-pulse"></span>
-                    Curo Health
+            <!-- ============================================================ -->
+            <!-- SUBSCRIPTION MODAL                                           -->
+            <!-- ============================================================ -->
+            <div id="view-subscription"
+                class="hidden animate-fade-in-up w-full h-full flex items-start justify-center overflow-y-auto py-10">
+                <div class="relative w-full max-w-5xl mx-auto px-6 py-16">
+                    <!-- Header -->
+                    <div class="text-center mb-10">
+                        <div
+                            class="inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-rose-400 mb-5">
+                            <span
+                                class="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.7)] animate-pulse"></span>
+                            Curo Health
+                        </div>
+                        <h1 class="text-4xl md:text-5xl font-bold text-white leading-tight mb-4">
+                            Care that scales<br>from <em class="text-rose-500 italic">one person</em> to the whole
+                            family
+                        </h1>
+                        <p class="text-white/50 text-base max-w-md mx-auto leading-relaxed">
+                            Pick the plan that fits how much of the household you're looking after — upgrade any time as
+                            things change.
+                        </p>
+                    </div>
+
+                    <!-- Monthly / Yearly Toggle -->
+                    <div class="flex justify-center mb-14">
+                        <div id="sub-toggle"
+                            class="relative inline-flex items-center bg-white/5 border border-white/10 backdrop-blur-xl rounded-full p-1 gap-1">
+                            <button class="sub-toggle-btn active" data-mode="monthly">Monthly</button>
+                            <button class="sub-toggle-btn" data-mode="yearly">Yearly <span
+                                    class="text-[10.5px] font-bold bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full">Save
+                                    20%</span></button>
+                        </div>
+                    </div>
+
+                    <!-- Plans Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
+
+                        <!-- Tier 1 — Starter -->
+                        <div
+                            class="plan relative bg-white/[0.045] border border-white/[0.09] backdrop-blur-2xl rounded-2xl p-7 flex flex-col transition-transform hover:-translate-y-1">
+                            <div
+                                class="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5 border border-white/[0.09] mb-4">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                                    <path d="M12 3v18M5 8l7-5 7 5" stroke="#c7cad1" stroke-width="1.6"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </div>
+                            <div class="text-lg font-bold text-white mb-1">Starter</div>
+                            <div class="text-xs text-white/30 leading-relaxed mb-5 min-h-[36px]">For one person keeping
+                                their own medication schedule on track.</div>
+
+                            <div class="flex items-baseline gap-1 mb-1">
+                                <span
+                                    class="price text-3xl font-semibold text-white tabular-nums tracking-tight transition-opacity duration-150"
+                                    data-monthly="0" data-yearly="0">$0</span>
+                                <span class="price-period text-xs text-white/30">/ forever</span>
+                            </div>
+                            <div class="text-[11.5px] text-rose-400 font-semibold mb-5 min-h-[15px]">&nbsp;</div>
+
+                            <button onclick="switchView('patient')"
+                                class="w-full py-2.5 rounded-xl text-sm font-bold border border-white/[0.09] bg-white/[0.04] text-white hover:bg-white/[0.08] transition-all mb-5 cursor-pointer">Get
+                                started free</button>
+
+                            <div class="h-px bg-white/[0.09] mb-4"></div>
+                            <ul class="flex flex-col gap-3 flex-1">
+                                <li class="flex items-start gap-2 text-xs text-white font-semibold leading-relaxed">
+                                    <span
+                                        class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/20 flex items-center justify-center"><svg
+                                            class="w-2.5 h-2.5" viewBox="0 0 12 12">
+                                            <path d="M2 6.5l2.5 2.5L10 3" stroke="#f43f5e" stroke-width="1.6"
+                                                fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg></span>
+                                    Basic medication tracking &amp; daily schedule
+                                </li>
+                                <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                                    <span
+                                        class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg
+                                            class="w-2.5 h-2.5" viewBox="0 0 12 12">
+                                            <path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6"
+                                                fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg></span>
+                                    Stock health alerts — expired or running low
+                                </li>
+                                <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                                    <span
+                                        class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg
+                                            class="w-2.5 h-2.5" viewBox="0 0 12 12">
+                                            <path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6"
+                                                fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg></span>
+                                    Limited AI Assistant queries — Quick Ask
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Tier 2 — Family Hub (featured) -->
+                        <div
+                            class="plan relative bg-gradient-to-b from-rose-500/10 to-rose-500/[0.02] border border-rose-500/40 backdrop-blur-2xl rounded-2xl p-7 flex flex-col shadow-[0_24px_60px_-20px_rgba(244,63,94,0.35),inset_0_1px_0_rgba(255,255,255,0.06)] transition-transform hover:-translate-y-2">
+                            <div
+                                class="absolute -top-3 left-6 bg-rose-500 text-white text-[10.5px] font-bold tracking-wide px-3 py-1 rounded-full shadow-[0_6px_16px_-4px_rgba(244,63,94,0.6)]">
+                                Most families choose this</div>
+                            <div
+                                class="w-9 h-9 rounded-xl flex items-center justify-center bg-rose-500/15 border border-rose-500/30 mb-4">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                                    <circle cx="8" cy="8" r="3" stroke="#f43f5e" stroke-width="1.6" />
+                                    <circle cx="17" cy="8" r="3" stroke="#f43f5e" stroke-width="1.6" />
+                                    <path
+                                        d="M2.5 20c.6-3.6 3-5.5 5.5-5.5S13.4 16.4 14 20M13 20c.5-3 2.4-4.7 4.5-4.7s3.8 1.7 4 4.7"
+                                        stroke="#f43f5e" stroke-width="1.6" stroke-linecap="round" />
+                                </svg>
+                            </div>
+                            <div class="text-lg font-bold text-white mb-1">Family Hub</div>
+                            <div class="text-xs text-white/30 leading-relaxed mb-5 min-h-[36px]">For households managing
+                                medication across multiple members and devices.</div>
+
+                            <div class="flex items-baseline gap-1 mb-1">
+                                <span
+                                    class="price text-3xl font-semibold text-white tabular-nums tracking-tight transition-opacity duration-150"
+                                    data-monthly="9.99" data-yearly="7.99">$9.99</span>
+                                <span class="price-period text-xs text-white/30">/ mo</span>
+                            </div>
+                            <div class="text-[11.5px] text-rose-400 font-semibold mb-5 min-h-[15px]" data-yearly-note>
+                                &nbsp;</div>
+
+                            <button onclick="switchView('patient')"
+                                class="w-full py-2.5 rounded-xl text-sm font-bold bg-gradient-to-b from-rose-400 to-rose-500 text-white border-none hover:brightness-110 transition-all mb-5 cursor-pointer shadow-[0_4px_18px_-4px_rgba(244,63,94,0.55)]">Start
+                                Family Hub</button>
+
+                            <div class="h-px bg-white/[0.09] mb-4"></div>
+                            <ul class="flex flex-col gap-3 flex-1">
+                                <li class="flex items-start gap-2 text-xs text-white font-semibold leading-relaxed">
+                                    <span
+                                        class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/20 flex items-center justify-center"><svg
+                                            class="w-2.5 h-2.5" viewBox="0 0 12 12">
+                                            <path d="M2 6.5l2.5 2.5L10 3" stroke="#f43f5e" stroke-width="1.6"
+                                                fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg></span>
+                                    Everything in Starter, plus:
+                                </li>
+                                <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                                    <span
+                                        class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg
+                                            class="w-2.5 h-2.5" viewBox="0 0 12 12">
+                                            <path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6"
+                                                fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg></span>
+                                    Full multi-user account switching — Mom, Dad, patient profiles
+                                </li>
+                                <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                                    <span
+                                        class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg
+                                            class="w-2.5 h-2.5" viewBox="0 0 12 12">
+                                            <path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6"
+                                                fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg></span>
+                                    Unlimited AI bottle scanning + interaction analysis
+                                </li>
+                                <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                                    <span
+                                        class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg
+                                            class="w-2.5 h-2.5" viewBox="0 0 12 12">
+                                            <path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6"
+                                                fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg></span>
+                                    Caregiver alerts for missed doses
+                                </li>
+                                <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                                    <span
+                                        class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg
+                                            class="w-2.5 h-2.5" viewBox="0 0 12 12">
+                                            <path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6"
+                                                fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg></span>
+                                    Shared family calendar view
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Tier 3 — Concierge -->
+                        <div
+                            class="plan relative bg-white/[0.045] border border-white/[0.09] backdrop-blur-2xl rounded-2xl p-7 flex flex-col transition-transform hover:-translate-y-1">
+                            <div
+                                class="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5 border border-white/[0.09] mb-4">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                                    <path
+                                        d="M12 2l2.6 5.8L21 9l-4.7 4.1L17.5 20 12 16.5 6.5 20l1.2-6.9L3 9l6.4-1.2L12 2z"
+                                        stroke="#c7cad1" stroke-width="1.4" stroke-linejoin="round" />
+                                </svg>
+                            </div>
+                            <div class="text-lg font-bold text-white mb-1">Concierge</div>
+                            <div class="text-xs text-white/30 leading-relaxed mb-5 min-h-[36px]">For power users
+                                coordinating aging parents' care with nurses or clinics.</div>
+
+                            <div class="flex items-baseline gap-1 mb-1">
+                                <span
+                                    class="price text-3xl font-semibold text-white tabular-nums tracking-tight transition-opacity duration-150"
+                                    data-monthly="24.99" data-yearly="19.99">$24.99</span>
+                                <span class="price-period text-xs text-white/30">/ mo</span>
+                            </div>
+                            <div class="text-[11.5px] text-rose-400 font-semibold mb-5 min-h-[15px]" data-yearly-note>
+                                &nbsp;</div>
+
+                            <button onclick="switchView('patient')"
+                                class="w-full py-2.5 rounded-xl text-sm font-bold border border-white/[0.09] bg-white/[0.04] text-white hover:bg-white/[0.08] transition-all mb-5 cursor-pointer">Talk
+                                to us</button>
+
+                            <div class="h-px bg-white/[0.09] mb-4"></div>
+                            <ul class="flex flex-col gap-3 flex-1">
+                                <li class="flex items-start gap-2 text-xs text-white font-semibold leading-relaxed">
+                                    <span
+                                        class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/20 flex items-center justify-center"><svg
+                                            class="w-2.5 h-2.5" viewBox="0 0 12 12">
+                                            <path d="M2 6.5l2.5 2.5L10 3" stroke="#f43f5e" stroke-width="1.6"
+                                                fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg></span>
+                                    Everything in Family Hub, plus:
+                                </li>
+                                <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                                    <span
+                                        class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg
+                                            class="w-2.5 h-2.5" viewBox="0 0 12 12">
+                                            <path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6"
+                                                fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg></span>
+                                    Real-time emergency alerts to doctors &amp; care providers
+                                </li>
+                                <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                                    <span
+                                        class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg
+                                            class="w-2.5 h-2.5" viewBox="0 0 12 12">
+                                            <path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6"
+                                                fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg></span>
+                                    Adherence analytics — weekly/monthly PDF reports
+                                </li>
+                                <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
+                                    <span
+                                        class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg
+                                            class="w-2.5 h-2.5" viewBox="0 0 12 12">
+                                            <path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6"
+                                                fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg></span>
+                                    Priority 24/7 AI support
+                                </li>
+                            </ul>
+                        </div>
+
+                    </div>
+
+                    <!-- Footer Note -->
+                    <p class="text-center text-white/30 text-xs mt-10">Prices in USD. Cancel any time — annual plans
+                        billed once per year.</p>
                 </div>
-                <h1 class="text-4xl md:text-5xl font-bold text-white leading-tight mb-4">
-                    Care that scales<br>from <em class="text-rose-500 italic">one person</em> to the whole family
-                </h1>
-                <p class="text-white/50 text-base max-w-md mx-auto leading-relaxed">
-                    Pick the plan that fits how much of the household you're looking after — upgrade any time as things change.
-                </p>
             </div>
-
-            <!-- Monthly / Yearly Toggle -->
-            <div class="flex justify-center mb-14">
-                <div id="sub-toggle" class="relative inline-flex items-center bg-white/5 border border-white/10 backdrop-blur-xl rounded-full p-1 gap-1">
-                    <button class="sub-toggle-btn active" data-mode="monthly">Monthly</button>
-                    <button class="sub-toggle-btn" data-mode="yearly">Yearly <span class="text-[10.5px] font-bold bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full">Save 20%</span></button>
-                </div>
-            </div>
-
-            <!-- Plans Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
-
-                <!-- Tier 1 — Starter -->
-                <div class="plan relative bg-white/[0.045] border border-white/[0.09] backdrop-blur-2xl rounded-2xl p-7 flex flex-col transition-transform hover:-translate-y-1">
-                    <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5 border border-white/[0.09] mb-4">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M5 8l7-5 7 5" stroke="#c7cad1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </div>
-                    <div class="text-lg font-bold text-white mb-1">Starter</div>
-                    <div class="text-xs text-white/30 leading-relaxed mb-5 min-h-[36px]">For one person keeping their own medication schedule on track.</div>
-
-                    <div class="flex items-baseline gap-1 mb-1">
-                        <span class="price text-3xl font-semibold text-white tabular-nums tracking-tight transition-opacity duration-150" data-monthly="0" data-yearly="0">$0</span>
-                        <span class="price-period text-xs text-white/30">/ forever</span>
-                    </div>
-                    <div class="text-[11.5px] text-rose-400 font-semibold mb-5 min-h-[15px]">&nbsp;</div>
-
-                    <button onclick="switchView('patient')" class="w-full py-2.5 rounded-xl text-sm font-bold border border-white/[0.09] bg-white/[0.04] text-white hover:bg-white/[0.08] transition-all mb-5 cursor-pointer">Get started free</button>
-
-                    <div class="h-px bg-white/[0.09] mb-4"></div>
-                    <ul class="flex flex-col gap-3 flex-1">
-                        <li class="flex items-start gap-2 text-xs text-white font-semibold leading-relaxed">
-                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/20 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#f43f5e" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                            Basic medication tracking &amp; daily schedule
-                        </li>
-                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
-                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                            Stock health alerts — expired or running low
-                        </li>
-                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
-                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                            Limited AI Assistant queries — Quick Ask
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Tier 2 — Family Hub (featured) -->
-                <div class="plan relative bg-gradient-to-b from-rose-500/10 to-rose-500/[0.02] border border-rose-500/40 backdrop-blur-2xl rounded-2xl p-7 flex flex-col shadow-[0_24px_60px_-20px_rgba(244,63,94,0.35),inset_0_1px_0_rgba(255,255,255,0.06)] transition-transform hover:-translate-y-2">
-                    <div class="absolute -top-3 left-6 bg-rose-500 text-white text-[10.5px] font-bold tracking-wide px-3 py-1 rounded-full shadow-[0_6px_16px_-4px_rgba(244,63,94,0.6)]">Most families choose this</div>
-                    <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-rose-500/15 border border-rose-500/30 mb-4">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="8" r="3" stroke="#f43f5e" stroke-width="1.6"/><circle cx="17" cy="8" r="3" stroke="#f43f5e" stroke-width="1.6"/><path d="M2.5 20c.6-3.6 3-5.5 5.5-5.5S13.4 16.4 14 20M13 20c.5-3 2.4-4.7 4.5-4.7s3.8 1.7 4 4.7" stroke="#f43f5e" stroke-width="1.6" stroke-linecap="round"/></svg>
-                    </div>
-                    <div class="text-lg font-bold text-white mb-1">Family Hub</div>
-                    <div class="text-xs text-white/30 leading-relaxed mb-5 min-h-[36px]">For households managing medication across multiple members and devices.</div>
-
-                    <div class="flex items-baseline gap-1 mb-1">
-                        <span class="price text-3xl font-semibold text-white tabular-nums tracking-tight transition-opacity duration-150" data-monthly="9.99" data-yearly="7.99">$9.99</span>
-                        <span class="price-period text-xs text-white/30">/ mo</span>
-                    </div>
-                    <div class="text-[11.5px] text-rose-400 font-semibold mb-5 min-h-[15px]" data-yearly-note>&nbsp;</div>
-
-                    <button onclick="switchView('patient')" class="w-full py-2.5 rounded-xl text-sm font-bold bg-gradient-to-b from-rose-400 to-rose-500 text-white border-none hover:brightness-110 transition-all mb-5 cursor-pointer shadow-[0_4px_18px_-4px_rgba(244,63,94,0.55)]">Start Family Hub</button>
-
-                    <div class="h-px bg-white/[0.09] mb-4"></div>
-                    <ul class="flex flex-col gap-3 flex-1">
-                        <li class="flex items-start gap-2 text-xs text-white font-semibold leading-relaxed">
-                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/20 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#f43f5e" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                            Everything in Starter, plus:
-                        </li>
-                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
-                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                            Full multi-user account switching — Mom, Dad, patient profiles
-                        </li>
-                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
-                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                            Unlimited AI bottle scanning + interaction analysis
-                        </li>
-                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
-                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                            Caregiver alerts for missed doses
-                        </li>
-                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
-                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                            Shared family calendar view
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Tier 3 — Concierge -->
-                <div class="plan relative bg-white/[0.045] border border-white/[0.09] backdrop-blur-2xl rounded-2xl p-7 flex flex-col transition-transform hover:-translate-y-1">
-                    <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-white/5 border border-white/[0.09] mb-4">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.6 5.8L21 9l-4.7 4.1L17.5 20 12 16.5 6.5 20l1.2-6.9L3 9l6.4-1.2L12 2z" stroke="#c7cad1" stroke-width="1.4" stroke-linejoin="round"/></svg>
-                    </div>
-                    <div class="text-lg font-bold text-white mb-1">Concierge</div>
-                    <div class="text-xs text-white/30 leading-relaxed mb-5 min-h-[36px]">For power users coordinating aging parents' care with nurses or clinics.</div>
-
-                    <div class="flex items-baseline gap-1 mb-1">
-                        <span class="price text-3xl font-semibold text-white tabular-nums tracking-tight transition-opacity duration-150" data-monthly="24.99" data-yearly="19.99">$24.99</span>
-                        <span class="price-period text-xs text-white/30">/ mo</span>
-                    </div>
-                    <div class="text-[11.5px] text-rose-400 font-semibold mb-5 min-h-[15px]" data-yearly-note>&nbsp;</div>
-
-                    <button onclick="switchView('patient')" class="w-full py-2.5 rounded-xl text-sm font-bold border border-white/[0.09] bg-white/[0.04] text-white hover:bg-white/[0.08] transition-all mb-5 cursor-pointer">Talk to us</button>
-
-                    <div class="h-px bg-white/[0.09] mb-4"></div>
-                    <ul class="flex flex-col gap-3 flex-1">
-                        <li class="flex items-start gap-2 text-xs text-white font-semibold leading-relaxed">
-                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/20 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#f43f5e" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                            Everything in Family Hub, plus:
-                        </li>
-                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
-                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                            Real-time emergency alerts to doctors &amp; care providers
-                        </li>
-                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
-                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                            Adherence analytics — weekly/monthly PDF reports
-                        </li>
-                        <li class="flex items-start gap-2 text-xs text-white/50 leading-relaxed">
-                            <span class="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-rose-500/15 flex items-center justify-center"><svg class="w-2.5 h-2.5" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="#fb7185" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-                            Priority 24/7 AI support
-                        </li>
-                    </ul>
-                </div>
-
-            </div>
-
-            <!-- Footer Note -->
-            <p class="text-center text-white/30 text-xs mt-10">Prices in USD. Cancel any time — annual plans billed once per year.</p>
-        </div>
-    </div>
         </main>
     </div>
 
@@ -1524,22 +1951,23 @@
             const caregiverView = document.getElementById('view-caregiver');
             const calendarView = document.getElementById('view-calendar');
             const subscriptionView = document.getElementById('view-subscription');
+            const stockView = document.getElementById('view-stock');
             const tabPatientBtn = document.getElementById('tab-patient');
             const tabCaregiverBtn = document.getElementById('tab-caregiver');
 
             const activeClasses = ['bg-brand-50', 'text-brand-700'];
             const inactiveClasses = ['text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100'];
-            
+
             // Hide all first
-            [patientView, caregiverView, calendarView, subscriptionView].forEach(view => {
-                if(view) {
+            [patientView, caregiverView, calendarView, subscriptionView, stockView].forEach(view => {
+                if (view) {
                     view.classList.add('hidden');
                     view.classList.remove('block');
                 }
             });
 
             if (tabName === 'patient') {
-                if(patientView) {
+                if (patientView) {
                     patientView.classList.remove('hidden');
                     patientView.classList.add('block');
                 }
@@ -1550,7 +1978,7 @@
 
                 getDailySchedule();
             } else if (tabName === 'caregiver') {
-                if(caregiverView) {
+                if (caregiverView) {
                     caregiverView.classList.remove('hidden');
                     caregiverView.classList.add('block');
                 }
@@ -1561,15 +1989,20 @@
 
                 fetchAlerts();
             } else if (tabName === 'calendar') {
-                if(calendarView) {
+                if (calendarView) {
                     calendarView.classList.remove('hidden');
                     calendarView.classList.add('block');
                 }
-                // Optional: Initialize or fetch calendar data here if needed
             } else if (tabName === 'subscription') {
                 if (subscriptionView) {
                     subscriptionView.classList.remove('hidden');
                 }
+            } else if (tabName === 'stock') {
+                if (stockView) {
+                    stockView.classList.remove('hidden');
+                    stockView.classList.add('block');
+                }
+                loadStockInventory();
             }
         }
 
@@ -1852,10 +2285,166 @@
             }
         }
 
-        function handleSaveMedication(event) {
+        async function handleSaveMedication(event) {
             event.preventDefault();
-            alert("Medication 'saved'! (Demo mode)");
-            closeAddMedModal();
+
+            const gtin = document.getElementById('med-gtin').value.trim();
+            const name = document.getElementById('med-name').value.trim();
+            const batch_number = document.getElementById('med-batch').value.trim();
+            const dosage = document.getElementById('med-dosage').value.trim();
+            const quantity = document.getElementById('med-quantity').value.trim();
+            const expiry_date = document.getElementById('med-expiry').value.trim();
+
+            if (!name) {
+                alert('Please enter a medicine name.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/api/medications`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ gtin, name, batch_number, dosage, quantity, expiry_date })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Failed to save medication.');
+                }
+
+                closeAddMedModal();
+                // If the stock view is visible, refresh it
+                const stockView = document.getElementById('view-stock');
+                if (stockView && !stockView.classList.contains('hidden')) {
+                    loadStockInventory();
+                }
+            } catch (err) {
+                console.error('Save medication error:', err);
+                alert('Error saving medication: ' + err.message);
+            }
+        }
+
+        // ----------------------------------------------------------
+        // Stock Inventory Logic
+        // ----------------------------------------------------------
+        async function loadStockInventory() {
+            const tbody = document.getElementById('stock-table-body');
+            const countBadge = document.getElementById('stock-count-badge');
+            tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-16 text-center text-white/50 text-sm"><svg class="animate-spin inline-block mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Loading inventory…</td></tr>';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/medications`);
+                if (!res.ok) throw new Error('Failed to fetch stock data.');
+                const data = await res.json();
+
+                countBadge.textContent = `${data.length} item${data.length !== 1 ? 's' : ''}`;
+
+                // Stats counters
+                let expired = 0, soon = 0, healthy = 0;
+                const now = new Date();
+                const soonThreshold = new Date();
+                soonThreshold.setDate(soonThreshold.getDate() + 30);
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="px-6 py-20 text-center">
+                                <div class="flex flex-col items-center space-y-3">
+                                    <span class="text-4xl">📭</span>
+                                    <p class="text-white/70 font-semibold text-base">No medications in stock yet</p>
+                                    <p class="text-white/40 text-sm">Add your first medication using the button above.</p>
+                                </div>
+                            </td>
+                        </tr>`;
+                    document.getElementById('stock-stat-total').textContent = '0';
+                    document.getElementById('stock-stat-healthy').textContent = '0';
+                    document.getElementById('stock-stat-soon').textContent = '0';
+                    document.getElementById('stock-stat-expired').textContent = '0';
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                data.forEach((med, idx) => {
+                    // Determine expiry status
+                    let statusHTML = '';
+                    let rowHighlight = '';
+                    if (med.expiry_date) {
+                        // Parse various date formats
+                        let expiryDate;
+                        if (med.expiry_date.includes('/')) {
+                            const parts = med.expiry_date.split('/');
+                            expiryDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                        } else if (med.expiry_date.match(/^\d{2}-\d{2}-\d{4}$/)) {
+                            const parts = med.expiry_date.split('-');
+                            expiryDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                        } else {
+                            expiryDate = new Date(med.expiry_date);
+                        }
+
+                        if (isNaN(expiryDate.getTime())) {
+                            statusHTML = '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide bg-white/10 border border-white/20 text-white/60">Unknown</span>';
+                            healthy++;
+                        } else if (expiryDate < now) {
+                            statusHTML = '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide bg-red-500/20 border border-red-500/40 text-red-300 shadow-[0_0_8px_rgba(239,68,68,0.2)]"><span class="w-1.5 h-1.5 rounded-full bg-red-400 mr-1.5 animate-pulse"></span>Expired</span>';
+                            rowHighlight = 'bg-red-500/[0.04]';
+                            expired++;
+                        } else if (expiryDate <= soonThreshold) {
+                            statusHTML = '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide bg-amber-500/20 border border-amber-500/40 text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.15)]"><span class="w-1.5 h-1.5 rounded-full bg-amber-400 mr-1.5 animate-pulse"></span>Soon</span>';
+                            rowHighlight = 'bg-amber-500/[0.03]';
+                            soon++;
+                        } else {
+                            statusHTML = '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide bg-emerald-500/20 border border-emerald-500/40 text-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5"></span>Healthy</span>';
+                            healthy++;
+                        }
+                    } else {
+                        statusHTML = '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide bg-white/10 border border-white/20 text-white/50">N/A</span>';
+                        healthy++;
+                    }
+
+                    const formattedExpiry = med.expiry_date || '—';
+                    const dosageDisplay = med.dosage ? `${med.dosage} mg` : '—';
+
+                    const row = `
+                        <tr class="border-b border-white/[0.06] hover:bg-white/[0.06] transition-colors duration-150 ${rowHighlight}" style="animation: fadeInUp 0.3s ease ${idx * 0.04}s both">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500/20 to-rose-600/10 border border-rose-500/30 flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                                    </div>
+                                    <span class="text-sm font-semibold text-white">${med.name || '—'}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-white/60 font-mono">${med.gtin || '—'}</td>
+                            <td class="px-6 py-4 text-sm text-white/60">${med.batch_number || '—'}</td>
+                            <td class="px-6 py-4 text-sm text-white/80 font-medium">${dosageDisplay}</td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 rounded-lg text-sm font-bold text-white bg-white/10 border border-white/20">${med.quantity ?? '—'}</span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-white/70 tabular-nums">${formattedExpiry}</td>
+                            <td class="px-6 py-4 text-center">${statusHTML}</td>
+                        </tr>`;
+                    tbody.insertAdjacentHTML('beforeend', row);
+                });
+
+                // Update summary stats
+                document.getElementById('stock-stat-total').textContent = data.length;
+                document.getElementById('stock-stat-healthy').textContent = healthy;
+                document.getElementById('stock-stat-soon').textContent = soon;
+                document.getElementById('stock-stat-expired').textContent = expired;
+
+            } catch (err) {
+                console.error('Stock fetch error:', err);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-6 py-16 text-center">
+                            <div class="flex flex-col items-center space-y-2">
+                                <span class="text-3xl">⚠️</span>
+                                <p class="text-red-400 font-semibold text-sm">Error loading inventory</p>
+                                <p class="text-white/40 text-xs">${err.message}</p>
+                            </div>
+                        </td>
+                    </tr>`;
+            }
         }
 
         // Dropdown Logic
@@ -1863,7 +2452,7 @@
             const dropdown = document.getElementById('family-dropdown');
             dropdown.classList.toggle('hidden');
         }
-        
+
         document.addEventListener('click', (e) => {
             const dropdown = document.getElementById('family-dropdown');
             if (dropdown && !dropdown.classList.contains('hidden') && !e.target.closest('.relative.flex.items-center')) {
@@ -1884,27 +2473,227 @@
         // ----------------------------------------------------------
         // Calendar Logic
         // ----------------------------------------------------------
+
+        // In-memory schedule data for calendar
+        let calendarScheduleData = [];
+        // Track taken states per day: { dayNum: { medIndex: true/false } }
+        let calendarTakenState = {};
+
         function initCalendar() {
+            buildCalendarGrid();
+            // If logged in, also fetch schedule data
+            if (currentUser) fetchCalendarSchedule();
+        }
+
+        function buildCalendarGrid() {
             const grid = document.getElementById('calendar-grid');
-            if(!grid) return;
+            if (!grid) return;
+            grid.innerHTML = '';
 
-            // month grid: Tue-start, 5 visible rows
-            const daysInMonth = 30;
-            const startOffset = 2; // Sun=0 Mon=1 Tue=2 ... first of month falls on Tue
-            const totalCells = 35; // 5 rows x 7
+            const now = new Date();
+            const todayDow = now.getDay(); // 0=Sun...6=Sat
+            const todayDate = now.getDate();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDow = new Date(year, month, 1).getDay(); // 0=Sun
+            const totalCells = Math.ceil((daysInMonth + firstDow) / 7) * 7;
 
-            const litDays = [1,2,4, 7,8,10, 13,14,16, 21,24,28];
+            // Dim weekday headers for non-today columns
+            const weekdayEls = document.querySelectorAll('#calendar-weekdays div');
+            weekdayEls.forEach((el, idx) => {
+                el.classList.toggle('cal-dimmed', idx !== todayDow);
+            });
+
+            // Determine which days have pending meds (from schedule data)
+            const daysWithPending = getDaysWithPendingMeds();
 
             for (let i = 0; i < totalCells; i++) {
-                const dayNum = i - startOffset + 1;
+                const dayNum = i - firstDow + 1;
+                const colIdx = i % 7; // 0=Sun column
                 const cell = document.createElement('div');
                 cell.className = 'day';
 
                 if (dayNum < 1 || dayNum > daysInMonth) {
                     cell.classList.add('muted');
                 } else {
+                    cell.setAttribute('data-day', dayNum);
                     cell.innerHTML = `<span class="day-num">${dayNum}</span>`;
-                    if (litDays.includes(dayNum)) {
+
+                    // Mark today
+                    const isToday = dayNum === todayDate;
+                    if (isToday) cell.classList.add('cal-today');
+
+                    // Dim non-today columns
+                    if (colIdx !== todayDow) cell.classList.add('cal-dimmed');
+
+                    // Glow logic: only glow if day has pending (not-all-taken) meds AND is today or future
+                    const hasPending = daysWithPending.has(dayNum);
+                    const allTaken = isAllTakenForDay(dayNum);
+                    if (hasPending && !allTaken && dayNum >= todayDate) {
+                        cell.classList.add('lit');
+                        const surface = document.createElement('div');
+                        surface.className = 'surface';
+                        cell.appendChild(surface);
+                        const bar = document.createElement('div');
+                        bar.className = 'glowbar';
+                        cell.appendChild(bar);
+                    }
+
+                    // Inject medicine names directly into the cell
+                    const medsForDay = getMedsForDay(dayNum);
+                    if (medsForDay.length > 0) {
+                        const medNames = medsForDay.map(m => m.name).join(' • ');
+                        const medContainer = document.createElement('div');
+                        medContainer.className = 'day-meds-container';
+                        medContainer.innerHTML = `<span class="day-meds-text">${medNames}</span>`;
+                        cell.appendChild(medContainer);
+                    }
+
+                    // Click handler to show medication detail popover
+                    if (hasPending || (calendarTakenState[dayNum] && Object.keys(calendarTakenState[dayNum]).length > 0)) {
+                        cell.style.cursor = 'pointer';
+                        cell.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            showDayDetail(cell, dayNum);
+                        });
+                    }
+                }
+                grid.appendChild(cell);
+            }
+        }
+
+        function getDaysWithPendingMeds() {
+            // Returns a Set of day numbers that have scheduled meds
+            const now = new Date();
+            const todayDate = now.getDate();
+            const todayDow = now.getDay();
+            const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const pendingDays = new Set();
+
+            if (!calendarScheduleData || calendarScheduleData.length === 0) return pendingDays;
+
+            // For each schedule, determine which days of the month it applies to
+            calendarScheduleData.forEach(item => {
+                const repeatDays = item.repeat_days || '';
+                const isDaily = repeatDays.toLowerCase().includes('daily');
+
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const date = new Date(now.getFullYear(), now.getMonth(), d);
+                    const dow = date.getDay();
+                    const dayAbbr = dayNames[dow];
+                    if (isDaily || repeatDays.includes(dayAbbr)) {
+                        pendingDays.add(d);
+                    }
+                }
+            });
+
+            return pendingDays;
+        }
+
+        function getMedsForDay(dayNum) {
+            // Returns array of meds scheduled for that day
+            const now = new Date();
+            const date = new Date(now.getFullYear(), now.getMonth(), dayNum);
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const dayAbbr = dayNames[date.getDay()];
+            const meds = [];
+
+            calendarScheduleData.forEach((item, idx) => {
+                const repeatDays = item.repeat_days || '';
+                const isDaily = repeatDays.toLowerCase().includes('daily');
+                if (isDaily || repeatDays.includes(dayAbbr)) {
+                    meds.push({
+                        name: item.medication?.name || 'Unknown',
+                        dosage: item.medication?.dosage_mg || '?',
+                        timeSlot: item.time_slot ? item.time_slot.substring(0, 5) : '--:--',
+                        scheduleIndex: idx,
+                        adherenceLogId: item.adherence_log_id,
+                        adherenceStatus: item.adherence_status
+                    });
+                }
+            });
+            return meds;
+        }
+
+        function isAllTakenForDay(dayNum) {
+            const meds = getMedsForDay(dayNum);
+            if (meds.length === 0) return false;
+            const takenMap = calendarTakenState[dayNum] || {};
+            return meds.every((m, i) => takenMap[i] === true || m.adherenceStatus === 'taken');
+        }
+
+        function showDayDetail(cell, dayNum) {
+            // Remove any existing popover
+            document.querySelectorAll('.day-detail-popover').forEach(p => p.remove());
+
+            const meds = getMedsForDay(dayNum);
+            if (meds.length === 0) return;
+
+            const now = new Date();
+            const isToday = dayNum === now.getDate();
+
+            if (!calendarTakenState[dayNum]) calendarTakenState[dayNum] = {};
+
+            const popover = document.createElement('div');
+            popover.className = 'day-detail-popover';
+
+            let title = isToday ? "Today's Meds" : `Day ${dayNum} Meds`;
+            let html = `<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">${title}</div>`;
+
+            meds.forEach((med, i) => {
+                const isTaken = calendarTakenState[dayNum][i] === true || med.adherenceStatus === 'taken';
+                html += `
+                    <div class="med-item ${isTaken ? 'taken' : ''}" onclick="toggleCalMedTaken(${dayNum}, ${i}, this)">
+                        <div class="med-check">${isTaken ? '<svg width="10" height="10" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}</div>
+                        <div style="flex:1;min-width:0">
+                            <div style="font-size:12px;font-weight:600;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${med.name}</div>
+                            <div style="font-size:10px;color:rgba(255,255,255,0.4)">${med.dosage} mg · ${med.timeSlot}</div>
+                        </div>
+                    </div>`;
+            });
+
+            popover.innerHTML = html;
+            cell.style.position = 'relative';
+            cell.appendChild(popover);
+
+            // Close popover on outside click
+            const closeHandler = (e) => {
+                if (!cell.contains(e.target)) {
+                    popover.remove();
+                    document.removeEventListener('click', closeHandler);
+                }
+            };
+            setTimeout(() => document.addEventListener('click', closeHandler), 10);
+        }
+
+        function toggleCalMedTaken(dayNum, medIndex, el) {
+            if (!calendarTakenState[dayNum]) calendarTakenState[dayNum] = {};
+            const wasTaken = calendarTakenState[dayNum][medIndex] === true;
+            calendarTakenState[dayNum][medIndex] = !wasTaken;
+
+            // Toggle visual
+            el.classList.toggle('taken', !wasTaken);
+            const checkEl = el.querySelector('.med-check');
+            checkEl.innerHTML = !wasTaken ? '<svg width="10" height="10" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '';
+            checkEl.style.background = !wasTaken ? '#10b981' : '';
+            checkEl.style.borderColor = !wasTaken ? '#10b981' : '';
+
+            // If all taken for this day, remove glow from the cell
+            const allDone = isAllTakenForDay(dayNum);
+            const cell = document.querySelector(`#calendar-grid .day[data-day="${dayNum}"]`);
+            if (cell) {
+                if (allDone) {
+                    cell.classList.remove('lit');
+                    const surface = cell.querySelector('.surface');
+                    const glowbar = cell.querySelector('.glowbar');
+                    if (surface) surface.remove();
+                    if (glowbar) glowbar.remove();
+                } else {
+                    // Re-add glow if not all taken and cell should glow
+                    const now = new Date();
+                    if (dayNum >= now.getDate() && !cell.classList.contains('lit')) {
                         cell.classList.add('lit');
                         const surface = document.createElement('div');
                         surface.className = 'surface';
@@ -1914,7 +2703,171 @@
                         cell.appendChild(bar);
                     }
                 }
-                grid.appendChild(cell);
+            }
+
+            // Also mark as taken on the backend if it's today and has an adherence log
+            const meds = getMedsForDay(dayNum);
+            const med = meds[medIndex];
+            if (med && med.adherenceLogId && !wasTaken) {
+                fetch(`${API_BASE}/adherence/${med.adherenceLogId}/take`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(res => {
+                    if (res.ok) {
+                        getDailySchedule();
+                        fetchAlerts();
+                    }
+                })
+                .catch(err => console.warn('Could not update adherence:', err));
+            }
+        }
+
+        async function fetchCalendarSchedule() {
+            if (!currentUser) return;
+            try {
+                const res = await fetch(`${API_BASE}/dashboard/${currentUser.id}/schedule`);
+                if (res.ok) {
+                    calendarScheduleData = await res.json();
+                } else {
+                    calendarScheduleData = [];
+                }
+            } catch (err) {
+                console.warn('Calendar schedule fetch failed:', err);
+                calendarScheduleData = [];
+            }
+            // Rebuild the grid with real data
+            buildCalendarGrid();
+        }
+
+        // ----------------------------------------------------------
+        // Add Task Modal Logic
+        // ----------------------------------------------------------
+        function openAddTaskModal() {
+            const modal = document.getElementById('modal-add-task');
+            modal.classList.remove('hidden');
+            document.getElementById('add-task-form').reset();
+            // Reset day pills
+            document.querySelectorAll('#task-day-pills .day-pill').forEach(p => {
+                p.classList.remove('bg-gradient-to-r', 'from-[#f43f5e]', 'to-[#800020]', 'text-white', 'border-transparent', 'shadow-md');
+                p.classList.add('bg-white/5', 'text-white/60', 'border-white/20');
+                p.removeAttribute('data-selected');
+            });
+            document.getElementById('task-select-all-days').checked = false;
+            // Init with one time slot
+            const slotsContainer = document.getElementById('task-time-slots');
+            slotsContainer.innerHTML = '';
+            addTimeSlot();
+            // Populate user dropdown
+            const userSelect = document.getElementById('task-user');
+            userSelect.innerHTML = '';
+            if (currentUser) {
+                userSelect.innerHTML = `<option value="${currentUser.id}">${currentUser.name} (You)</option>`;
+            }
+        }
+
+        function closeAddTaskModal() {
+            document.getElementById('modal-add-task').classList.add('hidden');
+        }
+
+        function addTimeSlot() {
+            const container = document.getElementById('task-time-slots');
+            const slot = document.createElement('div');
+            slot.className = 'flex items-center gap-2';
+            slot.innerHTML = `
+                <input type="time" required class="flex-1 px-3 py-2.5 bg-black/20 border border-white/10 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-black/40 backdrop-blur-sm text-sm transition-all duration-150 [color-scheme:dark]">
+                <button type="button" onclick="this.parentElement.remove()" class="w-8 h-8 flex items-center justify-center text-white/40 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors text-sm font-bold">&times;</button>
+            `;
+            container.appendChild(slot);
+        }
+
+        function toggleDayPill(btn) {
+            const isSelected = btn.hasAttribute('data-selected');
+            if (isSelected) {
+                btn.removeAttribute('data-selected');
+                btn.classList.remove('bg-gradient-to-r', 'from-[#f43f5e]', 'to-[#800020]', 'text-white', 'border-transparent', 'shadow-md');
+                btn.classList.add('bg-white/5', 'text-white/60', 'border-white/20');
+            } else {
+                btn.setAttribute('data-selected', 'true');
+                btn.classList.add('bg-gradient-to-r', 'from-[#f43f5e]', 'to-[#800020]', 'text-white', 'border-transparent', 'shadow-md');
+                btn.classList.remove('bg-white/5', 'text-white/60', 'border-white/20');
+            }
+            // Update select-all checkbox
+            const allPills = document.querySelectorAll('#task-day-pills .day-pill');
+            const allSelected = [...allPills].every(p => p.hasAttribute('data-selected'));
+            document.getElementById('task-select-all-days').checked = allSelected;
+        }
+
+        function toggleAllDays(checked) {
+            document.querySelectorAll('#task-day-pills .day-pill').forEach(btn => {
+                if (checked) {
+                    btn.setAttribute('data-selected', 'true');
+                    btn.classList.add('bg-gradient-to-r', 'from-[#f43f5e]', 'to-[#800020]', 'text-white', 'border-transparent', 'shadow-md');
+                    btn.classList.remove('bg-white/5', 'text-white/60', 'border-white/20');
+                } else {
+                    btn.removeAttribute('data-selected');
+                    btn.classList.remove('bg-gradient-to-r', 'from-[#f43f5e]', 'to-[#800020]', 'text-white', 'border-transparent', 'shadow-md');
+                    btn.classList.add('bg-white/5', 'text-white/60', 'border-white/20');
+                }
+            });
+        }
+
+        async function handleAddTask(event) {
+            event.preventDefault();
+            if (!currentUser) { alert('Please log in first.'); return; }
+
+            const medName = document.getElementById('task-med-name').value.trim();
+            const dosage = parseInt(document.getElementById('task-dosage').value, 10);
+
+            // Collect time slots
+            const timeInputs = document.querySelectorAll('#task-time-slots input[type=time]');
+            const times = [...timeInputs].map(i => i.value).filter(v => v);
+            if (times.length === 0) { alert('Please add at least one time slot.'); return; }
+
+            // Collect selected days
+            const selectedDays = [...document.querySelectorAll('#task-day-pills .day-pill[data-selected]')].map(b => b.dataset.day);
+            if (selectedDays.length === 0) { alert('Please select at least one day.'); return; }
+
+            const repeatDays = selectedDays.length === 7 ? 'daily' : selectedDays.join(',');
+
+            try {
+                // Step 1: Create the medication
+                const medRes = await fetch(`${API_BASE}/medications/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: currentUser.id,
+                        name: medName,
+                        dosage_mg: dosage,
+                        stock_quantity: 30,
+                        expiry_date: null,
+                        gtin: null,
+                        batch_number: null
+                    })
+                });
+                if (!medRes.ok) throw new Error('Failed to create medication');
+                const medData = await medRes.json();
+
+                // Step 2: Create schedule(s) for each time slot
+                for (const time of times) {
+                    await fetch(`${API_BASE}/schedules/`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            medication_id: medData.id,
+                            time_slot: time + ':00',
+                            repeat_days: repeatDays
+                        })
+                    });
+                }
+
+                closeAddTaskModal();
+                // Refresh calendar and dashboard
+                fetchCalendarSchedule();
+                getDailySchedule();
+            } catch (err) {
+                console.error('Add task error:', err);
+                alert('Error adding schedule: ' + err.message);
             }
         }
 
@@ -1929,7 +2882,7 @@
                 const subPeriods = document.querySelectorAll('#view-subscription .price-period');
                 const subYearlyNotes = document.querySelectorAll('#view-subscription [data-yearly-note]');
 
-                function setSubMode(mode){
+                function setSubMode(mode) {
                     subToggle.classList.toggle('yearly', mode === 'yearly');
                     subButtons.forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
 
@@ -1962,5 +2915,3 @@
 </body>
 
 </html>
-
-
