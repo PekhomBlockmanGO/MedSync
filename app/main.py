@@ -374,8 +374,8 @@ def get_stock_medications():
 @app.get("/api/medications/expiry-warnings")
 def get_stock_expiry_warnings():
     stock = load_stock()
-    now = datetime.date.today()
-    soon_threshold = now + datetime.timedelta(days=30)
+    now = date.today()
+    soon_threshold = now + timedelta(days=30)
     warnings = []
     
     for item in stock:
@@ -385,12 +385,12 @@ def get_stock_expiry_warnings():
         try:
             if "/" in exp_str:
                 parts = exp_str.split("/")
-                exp_date = datetime.date(int(parts[2]), int(parts[1]), int(parts[0]))
+                exp_date = date(int(parts[2]), int(parts[1]), int(parts[0]))
             elif "-" in exp_str and len(exp_str.split("-")[0]) == 2:
                 parts = exp_str.split("-")
-                exp_date = datetime.date(int(parts[2]), int(parts[1]), int(parts[0]))
+                exp_date = date(int(parts[2]), int(parts[1]), int(parts[0]))
             else:
-                exp_date = datetime.date.fromisoformat(exp_str)
+                exp_date = date.fromisoformat(exp_str)
                 
             if exp_date < now:
                 warnings.append({
