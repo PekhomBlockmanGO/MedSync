@@ -15,6 +15,7 @@ import json
 import io
 from PIL import Image
 from datetime import date, datetime, timedelta
+from typing import Optional
 
 import bcrypt
 from fastapi import Depends, FastAPI, HTTPException, status, File, UploadFile
@@ -31,6 +32,7 @@ from app.models import (
     AdherenceLog,
     AdherenceStatus,
     Family,
+    HealthDocument,
     Medication,
     Schedule,
     User,
@@ -41,7 +43,10 @@ from app.schemas import (
     CaregiverAlertResponse,
     DashboardScheduleResponse,
     FamilyCreate,
+    FamilyMemberCreate,
     FamilyResponse,
+    HealthDocumentCreate,
+    HealthDocumentResponse,
     MedicationCreate,
     MedicationResponse,
     ScheduleCreate,
@@ -75,6 +80,25 @@ app.add_middleware(
 )
 
 app.mount("/frontend", StaticFiles(directory="frontend", html=True), name="frontend")
+
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc: RequestValidationError):
+    messages = []
+    for err in exc.errors():
+        loc = err.get("loc", [])
+        field = loc[-1] if loc else "field"
+        msg = err.get("msg", "")
+        if field == "password" or "8 characters" in msg.lower():
+            messages.append("Password must be at least 8 characters long.")
+        else:
+            messages.append(f"{field}: {msg}")
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": ", ".join(messages)},
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -160,14 +184,17 @@ def create_user(user_in: UserCreate, db: Session = Depends(get_db)):
     - Hashes the plain-text password before persisting.
     - Returns the created user **without** the password hash.
     """
-    # Verify the family exists
+    # Verify the family exists (auto-create a default family if missing)
     family = db.get(Family, user_in.family_id)
     if not family:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Family with id {user_in.family_id} not found. "
-                   f"Create a family first via POST /families/.",
-        )
+        family = db.execute(select(Family)).scalars().first()
+        if not family:
+            alphabet = string.ascii_uppercase + string.digits
+            join_code = "".join(secrets.choice(alphabet) for _ in range(6))
+            family = Family(name=f"{user_in.name}'s Family", join_code=join_code)
+            db.add(family)
+            db.commit()
+            db.refresh(family)
 
     # Check for duplicate email
     existing = db.execute(
@@ -181,7 +208,7 @@ def create_user(user_in: UserCreate, db: Session = Depends(get_db)):
         )
 
     db_user = User(
-        family_id=user_in.family_id,
+        family_id=family.id,
         role=user_in.role,
         name=user_in.name,
         email=user_in.email,
@@ -313,7 +340,15 @@ def load_stock():
     if os.path.exists(STOCK_DB_FILE):
         try:
             with open(STOCK_DB_FILE, "r") as f:
-                return json.load(f)
+                items = json.load(f)
+                changed = False
+                for idx, item in enumerate(items, 1):
+                    if "id" not in item:
+                        item["id"] = idx
+                        changed = True
+                if changed:
+                    save_stock(items)
+                return items
         except Exception:
             pass
     return []
@@ -325,24 +360,104 @@ def save_stock(data):
 @app.post("/api/medications")
 def add_medication_to_stock(med: StockMedication):
     stock = load_stock()
-    stock.append(med.dict())
+    med_dict = med.dict()
+    next_id = max([int(m.get("id", 0)) for m in stock], default=0) + 1
+    med_dict["id"] = next_id
+    stock.append(med_dict)
     save_stock(stock)
-    return {"status": "success", "data": med}
+    return {"status": "success", "data": med_dict}
 
 @app.get("/api/medications")
 def get_stock_medications():
     return load_stock()
 
+@app.get("/api/medications/expiry-warnings")
+def get_stock_expiry_warnings():
+    stock = load_stock()
+    now = datetime.date.today()
+    soon_threshold = now + datetime.timedelta(days=30)
+    warnings = []
+    
+    for item in stock:
+        exp_str = item.get("expiry_date")
+        if not exp_str:
+            continue
+        try:
+            if "/" in exp_str:
+                parts = exp_str.split("/")
+                exp_date = datetime.date(int(parts[2]), int(parts[1]), int(parts[0]))
+            elif "-" in exp_str and len(exp_str.split("-")[0]) == 2:
+                parts = exp_str.split("-")
+                exp_date = datetime.date(int(parts[2]), int(parts[1]), int(parts[0]))
+            else:
+                exp_date = datetime.date.fromisoformat(exp_str)
+                
+            if exp_date < now:
+                warnings.append({
+                    "id": item.get("id"),
+                    "name": item.get("name"),
+                    "expiry_date": exp_str,
+                    "status": "expired",
+                    "message": f"⚠️ Medicine Expired: {item.get('name')} expired on {exp_str}."
+                })
+            elif exp_date <= soon_threshold:
+                warnings.append({
+                    "id": item.get("id"),
+                    "name": item.get("name"),
+                    "expiry_date": exp_str,
+                    "status": "expiring_soon",
+                    "message": f"⚠️ Medicine Expiring Soon: {item.get('name')} expires on {exp_str}."
+                })
+        except Exception:
+            pass
+            
+    return warnings
+
+@app.delete("/api/medications/{index}")
+def delete_stock_medication(index: int):
+    stock = load_stock()
+    if 0 <= index < len(stock):
+        deleted = stock.pop(index)
+        save_stock(stock)
+        return {"status": "success", "deleted": deleted}
+    raise HTTPException(status_code=404, detail="Medication index out of bounds")
+
+class RemoveStockQty(BaseModel):
+    remove_quantity: int = 1
+    remove_all: bool = False
+
+@app.post("/api/medications/{index}/remove")
+def remove_stock_quantity(index: int, payload: RemoveStockQty):
+    stock = load_stock()
+    if 0 <= index < len(stock):
+        med = stock[index]
+        try:
+            current_qty = int(med.get("quantity") or 1)
+        except (ValueError, TypeError):
+            current_qty = 1
+
+        if payload.remove_all or payload.remove_quantity >= current_qty:
+            deleted = stock.pop(index)
+            save_stock(stock)
+            return {"status": "success", "action": "deleted", "item": deleted}
+        else:
+            new_qty = current_qty - payload.remove_quantity
+            med["quantity"] = new_qty
+            save_stock(stock)
+            return {"status": "success", "action": "updated", "remaining_quantity": new_qty, "item": med}
+
+    raise HTTPException(status_code=404, detail="Medication index out of bounds")
+
 
 # ---------------------------------------------------------------------------
 # Calendar Tasks Endpoints
 # ---------------------------------------------------------------------------
-import datetime
 
 tasks_db = []
 task_counter = 1
 
 class TaskModel(BaseModel):
+    stock_id: int | None = None
     patient_name: str | None = None
     medicine_name: str
     dosage: int | str | None = None
@@ -352,8 +467,29 @@ class TaskModel(BaseModel):
 @app.post("/api/tasks")
 def create_task(task: TaskModel):
     global task_counter
+    stock = load_stock()
+    
+    # Backend Validation: Verify medicine exists in Stock Inventory
+    stock_item = None
+    if task.stock_id is not None:
+        stock_item = next((m for m in stock if m.get("id") == task.stock_id), None)
+    
+    if not stock_item and task.medicine_name:
+        stock_item = next((m for m in stock if m.get("name", "").strip().lower() == task.medicine_name.strip().lower()), None)
+        
+    if not stock_item and len(stock) > 0:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Medicine '{task.medicine_name}' does not exist in Stock Inventory. Please add it to Stock Inventory first."
+        )
+
     new_task = task.dict()
     new_task["id"] = task_counter
+    if stock_item:
+        new_task["stock_id"] = stock_item.get("id")
+        new_task["medicine_name"] = stock_item.get("name")
+        if not new_task.get("dosage"):
+            new_task["dosage"] = stock_item.get("dosage")
     new_task["taken_dates"] = []
     task_counter += 1
     tasks_db.append(new_task)
@@ -365,11 +501,28 @@ def get_tasks():
 
 @app.put("/api/tasks/memory/{task_id}/take")
 def take_task_memory(task_id: int):
-    today_str = datetime.date.today().isoformat()
+    today_str = date.today().isoformat()
     for task in tasks_db:
         if task["id"] == task_id:
             if today_str not in task["taken_dates"]:
                 task["taken_dates"].append(today_str)
+                # Deduct 1 unit from Stock Inventory quantity when dose is taken!
+                stock = load_stock()
+                target_stock = None
+                if task.get("stock_id"):
+                    target_stock = next((m for m in stock if m.get("id") == task.get("stock_id")), None)
+                if not target_stock and task.get("medicine_name"):
+                    target_stock = next((m for m in stock if m.get("name", "").strip().lower() == task.get("medicine_name", "").strip().lower()), None)
+                
+                if target_stock:
+                    try:
+                        cur_qty = int(target_stock.get("quantity") or 0)
+                        if cur_qty > 0:
+                            target_stock["quantity"] = cur_qty - 1
+                            save_stock(stock)
+                    except (ValueError, TypeError):
+                        pass
+
             return {"status": "success", "task_id": task_id, "taken_dates": task["taken_dates"]}
     raise HTTPException(status_code=404, detail="Task not found")
 
@@ -381,7 +534,14 @@ def take_task_memory(task_id: int):
 import os
 from openai import OpenAI
 
-_openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+def _get_openai_client():
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="OPENAI_API_KEY is not set in environment.",
+        )
+    return OpenAI(api_key=api_key)
 
 @app.post("/api/analyze-medication")
 async def analyze_medication(file: UploadFile = File(...)):
@@ -390,6 +550,7 @@ async def analyze_medication(file: UploadFile = File(...)):
     Uses OpenAI GPT-4o-mini to extract structured medication details
     and returns JSON with keys: gtin, name, batch_number, dosage, expiry_date.
     """
+    client = _get_openai_client()
     try:
         file_bytes = await file.read()
         base64_image = base64.b64encode(file_bytes).decode("utf-8")
@@ -413,7 +574,7 @@ async def analyze_medication(file: UploadFile = File(...)):
             "Do NOT wrap the output in markdown, code fences, backticks, or HTML."
         )
 
-        response = _openai_client.chat.completions.create(
+        response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -621,17 +782,25 @@ def mark_dose_taken(log_id: int, db: Session = Depends(get_db)):
         return {"status": "success", "task_id": log_id, "message": "Already marked as taken"}
 
     medication = log.schedule.medication
+    if medication:
+        if medication.stock_quantity > 0:
+            medication.stock_quantity -= 1
 
-    if medication.stock_quantity <= 0:
-        # Don't error out completely, just mark it taken and maybe log it.
-        pass
-    else:
-        # Decrement stock
-        medication.stock_quantity -= 1
+        # Also decrement Stock Inventory (stock_db.json)
+        stock = load_stock()
+        target_stock = next((m for m in stock if m.get("name", "").strip().lower() == medication.name.strip().lower()), None)
+        if target_stock:
+            try:
+                cur_qty = int(target_stock.get("quantity") or 0)
+                if cur_qty > 0:
+                    target_stock["quantity"] = cur_qty - 1
+                    save_stock(stock)
+            except (ValueError, TypeError):
+                pass
 
     # Update the log
     log.status = AdherenceStatus.taken
-    log.logged_at = datetime.utcnow()
+    log.logged_at = datetime.now()
 
     db.commit()
     db.refresh(log)
@@ -726,3 +895,192 @@ def check_missed_doses(db: Session = Depends(get_db)):
             })
 
     return alerts
+
+
+# ---------------------------------------------------------------------------
+# GET & POST /families/{family_id}/members  — Family Member Management
+# ---------------------------------------------------------------------------
+
+@app.get(
+    "/families/{family_id}/members",
+    response_model=list[UserResponse],
+    tags=["Families"],
+    summary="Get all members of a family",
+)
+def get_family_members(family_id: int, db: Session = Depends(get_db)):
+    """Fetch all individual member profiles in a family household."""
+    family = db.get(Family, family_id)
+    if not family:
+        raise HTTPException(status_code=404, detail=f"Family {family_id} not found.")
+    members = db.execute(
+        select(User).where(User.family_id == family_id).order_by(User.id.asc())
+    ).scalars().all()
+    return members
+
+
+@app.post(
+    "/families/{family_id}/members",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Families"],
+    summary="Add a new family member to household",
+)
+def add_family_member(family_id: int, member_in: FamilyMemberCreate, db: Session = Depends(get_db)):
+    """Add a new individual profile (e.g. Father, Mother, Son) to the household."""
+    family = db.get(Family, family_id)
+    if not family:
+        raise HTTPException(status_code=404, detail=f"Family {family_id} not found.")
+
+    # Check for code uniqueness within family
+    code = member_in.member_code.strip().upper()
+    existing_code = db.execute(
+        select(User).where(User.family_id == family_id, User.member_code == code)
+    ).scalar_one_or_none()
+    if existing_code:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Member code '{code}' is already used by {existing_code.name} in this household.",
+        )
+
+    dummy_email = f"member_{code.lower()}_{secrets.token_hex(4)}@household.local"
+
+    db_user = User(
+        family_id=family_id,
+        role=member_in.role,
+        name=member_in.name.strip(),
+        designation=member_in.designation.strip(),
+        member_code=code,
+        email=dummy_email,
+        password_hash=hash_password("member123"),
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+# ---------------------------------------------------------------------------
+# GET /calendar/family/{family_id}  — Household Calendar Data
+# ---------------------------------------------------------------------------
+
+@app.get(
+    "/calendar/family/{family_id}",
+    tags=["Dashboard"],
+    summary="Get all scheduled medications for family calendar display",
+)
+def get_family_calendar(family_id: int, db: Session = Depends(get_db)):
+    """Retrieve scheduled doses across all family members for stacked calendar display."""
+    users = db.execute(select(User).where(User.family_id == family_id)).scalars().all()
+    user_ids = [u.id for u in users]
+    user_map = {u.id: {"name": u.name, "designation": u.designation, "member_code": u.member_code} for u in users}
+
+    if not user_ids:
+        return []
+
+    schedules = (
+        db.execute(
+            select(Schedule)
+            .join(Medication, Schedule.medication_id == Medication.id)
+            .options(
+                joinedload(Schedule.medication),
+                joinedload(Schedule.adherence_logs),
+            )
+            .where(Medication.user_id.in_(user_ids) | (Medication.family_id == family_id))
+        )
+        .unique()
+        .scalars()
+        .all()
+    )
+
+    results = []
+    today = date.today()
+    for s in schedules:
+        user_id = s.medication.user_id
+        member_info = user_map.get(user_id, {"name": "Household", "designation": "Shared", "member_code": "ALL"})
+
+        todays_log = next(
+            (log for log in s.adherence_logs if log.scheduled_date == today),
+            None,
+        )
+
+        results.append({
+            "schedule_id": s.id,
+            "user_id": user_id,
+            "member_name": member_info["name"],
+            "member_designation": member_info["designation"],
+            "member_code": member_info["member_code"],
+            "time_slot": str(s.time_slot),
+            "repeat_days": s.repeat_days,
+            "medication_id": s.medication.id,
+            "medication_name": s.medication.name,
+            "dosage_mg": s.medication.dosage_mg,
+            "stock_quantity": s.medication.stock_quantity,
+            "adherence_status": todays_log.status if todays_log else AdherenceStatus.pending,
+            "adherence_log_id": todays_log.id if todays_log else None,
+        })
+
+    return results
+
+
+# ---------------------------------------------------------------------------
+# GET & POST & DELETE /health-documents/  — Digital Medical Vault
+# ---------------------------------------------------------------------------
+
+@app.get(
+    "/health-documents/family/{family_id}",
+    response_model=list[HealthDocumentResponse],
+    tags=["Health Documents"],
+    summary="Get prescriptions and health reports for a family",
+)
+def get_health_documents(family_id: int, user_id: Optional[int] = None, db: Session = Depends(get_db)):
+    """Retrieve all digital medical records (prescriptions, reports) for household."""
+    query = select(HealthDocument).where(HealthDocument.family_id == family_id)
+    if user_id:
+        query = query.where(HealthDocument.user_id == user_id)
+    docs = db.execute(query.order_by(HealthDocument.upload_date.desc())).scalars().all()
+    return docs
+
+
+@app.post(
+    "/health-documents/",
+    response_model=HealthDocumentResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Health Documents"],
+    summary="Upload a prescription or health report",
+)
+def create_health_document(doc_in: HealthDocumentCreate, db: Session = Depends(get_db)):
+    """Store a digital medical report/prescription linked to a family member."""
+    user = db.get(User, doc_in.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User {doc_in.user_id} not found.")
+
+    db_doc = HealthDocument(
+        family_id=doc_in.family_id,
+        user_id=doc_in.user_id,
+        title=doc_in.title.strip(),
+        document_type=doc_in.document_type.strip(),
+        file_name=doc_in.file_name.strip(),
+        mime_type=doc_in.mime_type.strip(),
+        file_data=doc_in.file_data,
+    )
+    db.add(db_doc)
+    db.commit()
+    db.refresh(db_doc)
+    return db_doc
+
+
+@app.delete(
+    "/health-documents/{doc_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["Health Documents"],
+    summary="Delete a health report or prescription",
+)
+def delete_health_document(doc_id: int, db: Session = Depends(get_db)):
+    """Delete a stored medical document."""
+    doc = db.get(HealthDocument, doc_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    db.delete(doc)
+    db.commit()
+    return None
+

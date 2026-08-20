@@ -112,15 +112,17 @@ class MedicationResponse(MedicationBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-# ╔═════════════════════════════════════════════════════════════════════════╗
-# ║  User Schemas                                                         ║
-# ╚═════════════════════════════════════════════════════════════════════════╝
+# ---------------------------------------------------------------------------
+# User Schemas
+# ---------------------------------------------------------------------------
 
 class UserBase(BaseModel):
     """Shared fields for a user account."""
     name: str = Field(..., min_length=1, description="Full name")
     email: str = Field(..., description="Unique email address")
-    role: UserRole = Field(..., description="User role within the family")
+    role: UserRole = Field(UserRole.patient, description="User role within the family")
+    designation: Optional[str] = Field("Member", description="Relationship/designation (e.g. Father, Mother)")
+    member_code: Optional[str] = Field("A", description="Short 1-2 char family code (e.g. A, B)")
 
 
 class UserCreate(UserBase):
@@ -128,21 +130,56 @@ class UserCreate(UserBase):
     family_id: int
     password: str = Field(
         ...,
-        min_length=8,
-        description="Plain-text password (will be hashed before storage)",
+        min_length=1,
+        description="Plain-text password",
     )
+
+
+class FamilyMemberCreate(BaseModel):
+    """Fields required when adding a family member to an existing household."""
+    name: str = Field(..., min_length=1)
+    designation: str = Field(..., description="Father, Mother, Son, Daughter, Caregiver, etc.")
+    member_code: str = Field(..., max_length=2, description="Short code e.g. A, B, C")
+    role: UserRole = UserRole.patient
 
 
 class UserResponse(UserBase):
     """
     User data returned by the API.
-
-    Includes the nested list of medications but intentionally
-    excludes password_hash for security.
     """
     id: int
     family_id: int
     medications: list[MedicationResponse] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# ---------------------------------------------------------------------------
+# Health Document Schemas
+# ---------------------------------------------------------------------------
+
+class HealthDocumentBase(BaseModel):
+    """Shared fields for a prescription or health document."""
+    title: str = Field(..., min_length=1, description="Document title")
+    document_type: str = Field("Prescription", description="Prescription, Health Report, Lab Report, etc.")
+    file_name: str
+    mime_type: str
+
+
+class HealthDocumentCreate(HealthDocumentBase):
+    """Fields required when uploading a new document."""
+    family_id: int
+    user_id: int
+    file_data: str  # Base64 string
+
+
+class HealthDocumentResponse(HealthDocumentBase):
+    """Document metadata and content returned by the API."""
+    id: int
+    family_id: int
+    user_id: int
+    file_data: str
+    upload_date: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -208,3 +245,4 @@ class CaregiverAlertResponse(BaseModel):
     medication_name: str = Field(..., description="Name of the missed medication")
     scheduled_time: time = Field(..., description="Time the dose was originally scheduled")
     message: str = Field(..., description="Human-readable alert message")
+

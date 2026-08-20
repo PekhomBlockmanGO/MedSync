@@ -70,7 +70,7 @@ class Family(Base):
 
 class User(Base):
     """
-    An individual user account linked to a family.
+    An individual user / family member account linked to a family.
 
     Attributes:
         id:            Primary key.
@@ -78,7 +78,9 @@ class User(Base):
         role:          'patient' or 'caregiver'.
         name:          Full name.
         email:         Unique email address.
-        password_hash: Hashed password (never store plaintext).
+        password_hash: Hashed password.
+        designation:   Role/relationship in family (e.g., Father, Mother, Son).
+        member_code:   Short 1-2 letter personal code (e.g. A, B, C).
     """
     __tablename__ = "users"
 
@@ -88,22 +90,26 @@ class User(Base):
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=False)
+    designation = Column(String, nullable=False, default="Member")
+    member_code = Column(String, nullable=False, default="A")
 
     # Relationships
     family = relationship("Family", back_populates="users")
     medications = relationship("Medication", back_populates="user")
+    health_documents = relationship("HealthDocument", back_populates="user")
 
     def __repr__(self) -> str:
-        return f"<User id={self.id} email={self.email!r} role={self.role}>"
+        return f"<User id={self.id} name={self.name!r} designation={self.designation!r} code={self.member_code!r}>"
 
 
 class Medication(Base):
     """
-    A medication entry belonging to a specific user.
+    A medication entry belonging to a shared family stock inventory.
 
     Attributes:
         id:             Primary key.
-        user_id:        FK → users.id.
+        family_id:      FK → families.id (Shared Household Stock).
+        user_id:        FK → users.id (Optional creator/owner).
         name:           Medication name.
         gtin:           Global Trade Item Number (barcode identifier).
         batch_number:   Manufacturer batch / lot number.
@@ -114,7 +120,8 @@ class Medication(Base):
     __tablename__ = "medications"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    family_id = Column(Integer, ForeignKey("families.id"), nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     name = Column(String, nullable=False)
     gtin = Column(String, nullable=True)
     batch_number = Column(String, nullable=True)
@@ -132,11 +139,11 @@ class Medication(Base):
 
 class Schedule(Base):
     """
-    A recurring dosing schedule tied to a medication.
+    A recurring dosing schedule tied to a medication and assigned to a family member.
 
     Attributes:
         id:             Primary key.
-        medication_id:  FK → medications.id.
+        medication_id:  FK → medications.id (Shared Stock item).
         time_slot:      Time of day the dose should be taken.
         repeat_days:    Comma-separated day codes, e.g. "Mon,Wed,Fri"
                         or "daily" for every day.
@@ -187,3 +194,28 @@ class AdherenceLog(Base):
             f"<AdherenceLog id={self.id} date={self.scheduled_date} "
             f"status={self.status}>"
         )
+
+
+class HealthDocument(Base):
+    """
+    Digitally stored medical document (prescription, report) for a family member.
+    """
+    __tablename__ = "health_documents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    family_id = Column(Integer, ForeignKey("families.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    title = Column(String, nullable=False)
+    document_type = Column(String, nullable=False, default="Prescription")
+    file_name = Column(String, nullable=False)
+    mime_type = Column(String, nullable=False)
+    file_data = Column(String, nullable=False)  # Base64 data string
+    upload_date = Column(DateTime, server_default=func.now())
+
+    # Relationships
+    user = relationship("User", back_populates="health_documents")
+    family = relationship("Family")
+
+    def __repr__(self) -> str:
+        return f"<HealthDocument id={self.id} title={self.title!r} type={self.document_type}>"
+
