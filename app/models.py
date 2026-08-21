@@ -154,6 +154,8 @@ class Schedule(Base):
     medication_id = Column(Integer, ForeignKey("medications.id"), nullable=False)
     time_slot = Column(Time, nullable=False)
     repeat_days = Column(String, nullable=False)
+    start_date = Column(Date, nullable=False, default=func.current_date())
+    end_date = Column(Date, nullable=True)
 
     # Relationships
     medication = relationship("Medication", back_populates="schedules")
@@ -218,4 +220,50 @@ class HealthDocument(Base):
 
     def __repr__(self) -> str:
         return f"<HealthDocument id={self.id} title={self.title!r} type={self.document_type}>"
+
+
+class Subscription(Base):
+    """
+    Household subscription details.
+    """
+    __tablename__ = "subscriptions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    family_id = Column(Integer, ForeignKey("families.id"), unique=True, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    plan = Column(String, nullable=False, default="free")
+    billing_cycle = Column(String, nullable=True) # monthly, yearly
+    status = Column(String, nullable=False, default="active")
+    razorpay_customer_id = Column(String, nullable=True)
+    razorpay_subscription_id = Column(String, nullable=True)
+    razorpay_plan_id = Column(String, nullable=True)
+    current_period_start = Column(DateTime, nullable=True)
+    current_period_end = Column(DateTime, nullable=True)
+    cancel_at_period_end = Column(Integer, default=0) # 0=False, 1=True
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    family = relationship("Family")
+    user = relationship("User")
+
+
+class Payment(Base):
+    """
+    Payment history log.
+    """
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    family_id = Column(Integer, ForeignKey("families.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    subscription_id = Column(Integer, ForeignKey("subscriptions.id"), nullable=True)
+    razorpay_order_id = Column(String, nullable=True)
+    razorpay_payment_id = Column(String, nullable=True, unique=True)
+    razorpay_signature = Column(String, nullable=True)
+    amount = Column(Float, nullable=False)
+    currency = Column(String, nullable=False, default="INR")
+    status = Column(String, nullable=False)
+    method = Column(String, nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 

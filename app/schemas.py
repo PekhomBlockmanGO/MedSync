@@ -45,6 +45,8 @@ class ScheduleBase(BaseModel):
         ...,
         description="Comma-separated day codes, e.g. 'Mon,Wed,Fri' or 'daily'",
     )
+    start_date: Optional[date] = Field(None, description="Start date of the schedule")
+    end_date: Optional[date] = Field(None, description="End date of the schedule")
 
 
 class ScheduleCreate(ScheduleBase):
@@ -246,3 +248,37 @@ class CaregiverAlertResponse(BaseModel):
     scheduled_time: time = Field(..., description="Time the dose was originally scheduled")
     message: str = Field(..., description="Human-readable alert message")
 
+
+# ╔═════════════════════════════════════════════════════════════════════════╗
+# ║  Subscription & Payment Schemas                                        ║
+# ╚═════════════════════════════════════════════════════════════════════════╝
+
+class SubscriptionBase(BaseModel):
+    plan: str
+    billing_cycle: Optional[str] = None
+    status: str
+
+class SubscriptionResponse(SubscriptionBase):
+    id: int
+    family_id: int
+    user_id: int
+    current_period_start: Optional[datetime] = None
+    current_period_end: Optional[datetime] = None
+    cancel_at_period_end: int = 0
+    
+    model_config = ConfigDict(from_attributes=True)
+
+class CheckoutRequest(BaseModel):
+    plan: str
+    billing_cycle: str
+
+class PaymentResponse(BaseModel):
+    id: int
+    family_id: int
+    amount: float
+    currency: str
+    status: str
+    method: Optional[str] = None
+    created_at: datetime
+    
+    model_config = ConfigDict(from_attributes=True)

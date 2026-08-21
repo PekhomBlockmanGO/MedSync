@@ -48,3 +48,6 @@ requests
 python-multipart
 Pillow
 openai
+razorpay==1.4.1 
+ 
+ 

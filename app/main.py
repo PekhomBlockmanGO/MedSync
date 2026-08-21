@@ -54,6 +54,7 @@ from app.schemas import (
     UserCreate,
     UserResponse,
 )
+from app.payments import router as payments_router
 
 # ---------------------------------------------------------------------------
 # App & config
@@ -78,6 +79,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(payments_router, prefix="/api")
 
 app.mount("/frontend", StaticFiles(directory="frontend", html=True), name="frontend")
 
@@ -127,6 +130,36 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Entitlements helper
+# ---------------------------------------------------------------------------
+def get_family_entitlements(family_id: int, db: Session):
+    from app.models import Subscription
+    sub = db.query(Subscription).filter(Subscription.family_id == family_id).first()
+    plan = "free"
+    if sub and sub.status == "active":
+        plan = sub.plan
+        
+    entitlements = {
+        "max_members": 2,
+        "max_health_docs": 10,
+        "advanced_ai": False,
+        "caregiver_alerts": False
+    }
+    
+    if plan in ["family", "family_monthly", "family_yearly"]:
+        entitlements["max_members"] = 7
+        entitlements["max_health_docs"] = 999
+        entitlements["advanced_ai"] = True
+        entitlements["caregiver_alerts"] = True
+    elif plan in ["care", "care_monthly", "care_yearly", "care+"]:
+        entitlements["max_members"] = 20
+        entitlements["max_health_docs"] = 9999
+        entitlements["advanced_ai"] = True
+        entitlements["caregiver_alerts"] = True
+        
+    return entitlements
+
+# ---------------------------------------------------------------------------
 # POST /families/  — Create a new family
 # ---------------------------------------------------------------------------
 
@@ -166,6 +199,82 @@ def create_family(family_in: FamilyCreate, db: Session = Depends(get_db)):
 
 
 # ---------------------------------------------------------------------------
+# POST /api/signup  — Send OTP for signup
+# ---------------------------------------------------------------------------
+
+from pydantic import BaseModel
+import smtplib
+import os
+import random
+from email.message import EmailMessage
+
+# In-memory storage for OTPs
+otp_store = {}
+verified_users = set()
+
+class SignupRequest(BaseModel):
+    email: str
+
+@app.post("/api/signup", tags=["Users"])
+def signup(request: SignupRequest):
+    """
+    Generate and send a 6-digit OTP to the user's email.
+    """
+    otp = "".join([str(random.randint(0, 9)) for _ in range(6)])
+    
+    # Store the OTP
+    otp_store[request.email] = otp
+    
+    gmail_address = os.getenv("GMAIL_ADDRESS")
+    gmail_password = os.getenv("GMAIL_APP_PASSWORD")
+    
+    msg = EmailMessage()
+    msg.set_content(f"Your 2-step verification code is: {otp}. This code will expire shortly.")
+    msg["Subject"] = "Your CoreFour Verification Code"
+    msg["From"] = gmail_address
+    msg["To"] = request.email
+    
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        if gmail_address and gmail_password:
+            server.login(gmail_address, gmail_password)
+            server.send_message(msg)
+        else:
+            raise Exception("GMAIL_ADDRESS or GMAIL_APP_PASSWORD environment variables are not set")
+        server.quit()
+        return {"status": "success", "message": "OTP sent successfully"}
+    except Exception as e:
+        logger.error(f"Failed to send email: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to send OTP email"
+        )
+
+class VerifyRequest(BaseModel):
+    email: str
+    otp: str
+
+@app.post("/api/verify", tags=["Users"])
+def verify_otp(request: VerifyRequest):
+    """
+    Verify the OTP sent to the user's email.
+    """
+    stored_otp = otp_store.get(request.email)
+    
+    if stored_otp and stored_otp == request.otp:
+        # Mark user as verified/active, clear the OTP
+        verified_users.add(request.email)
+        del otp_store[request.email]
+        return {"message": "Verification successful"}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification code"
+        )
+
+
+# ---------------------------------------------------------------------------
 # POST /users/  — Create a new user
 # ---------------------------------------------------------------------------
 
@@ -195,6 +304,15 @@ def create_user(user_in: UserCreate, db: Session = Depends(get_db)):
             db.add(family)
             db.commit()
             db.refresh(family)
+
+    # Check Entitlement limit
+    entitlements = get_family_entitlements(family.id, db)
+    current_members_count = db.query(User).filter(User.family_id == family.id).count()
+    # if current_members_count >= entitlements["max_members"]:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_403_FORBIDDEN,
+    #         detail=f"Subscription limit reached: Maximum {entitlements['max_members']} family members allowed on current plan.",
+    #     )
 
     # Check for duplicate email
     existing = db.execute(
@@ -649,6 +767,8 @@ def create_schedule(sched_in: ScheduleCreate, db: Session = Depends(get_db)):
         medication_id=sched_in.medication_id,
         time_slot=sched_in.time_slot,
         repeat_days=sched_in.repeat_days,
+        start_date=sched_in.start_date,
+        end_date=sched_in.end_date,
     )
     db.add(db_schedule)
     db.flush()  # assigns db_schedule.id before we reference it below
@@ -960,21 +1080,18 @@ def add_family_member(family_id: int, member_in: FamilyMemberCreate, db: Session
 
 
 # ---------------------------------------------------------------------------
-# GET /calendar/family/{family_id}  — Household Calendar Data
+# GET /calendar/user/{user_id}  — Personal Calendar Data
 # ---------------------------------------------------------------------------
 
 @app.get(
-    "/calendar/family/{family_id}",
+    "/calendar/user/{user_id}",
     tags=["Dashboard"],
-    summary="Get all scheduled medications for family calendar display",
+    summary="Get all scheduled medications for user calendar display",
 )
-def get_family_calendar(family_id: int, db: Session = Depends(get_db)):
-    """Retrieve scheduled doses across all family members for stacked calendar display."""
-    users = db.execute(select(User).where(User.family_id == family_id)).scalars().all()
-    user_ids = [u.id for u in users]
-    user_map = {u.id: {"name": u.name, "designation": u.designation, "member_code": u.member_code} for u in users}
-
-    if not user_ids:
+def get_user_calendar(user_id: int, db: Session = Depends(get_db)):
+    """Retrieve scheduled doses for a specific user for calendar display."""
+    user = db.get(User, user_id)
+    if not user:
         return []
 
     schedules = (
@@ -985,7 +1102,7 @@ def get_family_calendar(family_id: int, db: Session = Depends(get_db)):
                 joinedload(Schedule.medication),
                 joinedload(Schedule.adherence_logs),
             )
-            .where(Medication.user_id.in_(user_ids) | (Medication.family_id == family_id))
+            .where(Medication.user_id == user_id)
         )
         .unique()
         .scalars()
@@ -995,9 +1112,6 @@ def get_family_calendar(family_id: int, db: Session = Depends(get_db)):
     results = []
     today = date.today()
     for s in schedules:
-        user_id = s.medication.user_id
-        member_info = user_map.get(user_id, {"name": "Household", "designation": "Shared", "member_code": "ALL"})
-
         todays_log = next(
             (log for log in s.adherence_logs if log.scheduled_date == today),
             None,
@@ -1006,11 +1120,13 @@ def get_family_calendar(family_id: int, db: Session = Depends(get_db)):
         results.append({
             "schedule_id": s.id,
             "user_id": user_id,
-            "member_name": member_info["name"],
-            "member_designation": member_info["designation"],
-            "member_code": member_info["member_code"],
+            "member_name": user.name,
+            "member_designation": user.designation,
+            "member_code": user.member_code,
             "time_slot": str(s.time_slot),
             "repeat_days": s.repeat_days,
+            "start_date": s.start_date.isoformat() if s.start_date else None,
+            "end_date": s.end_date.isoformat() if s.end_date else None,
             "medication_id": s.medication.id,
             "medication_name": s.medication.name,
             "dosage_mg": s.medication.dosage_mg,

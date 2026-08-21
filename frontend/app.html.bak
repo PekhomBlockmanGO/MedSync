@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedSync</title>
+    <title>CoreFour</title>
     <meta name="description" content="Track medications, schedules, and adherence for the whole family.">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -618,8 +618,6 @@
             box-shadow: 0 4px 14px 0 rgba(13, 148, 136, 0.4);
         }
     </style>
-    <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 
 <body class="bg-slate-50 text-gray-800 antialiased min-h-screen font-sans">
@@ -649,78 +647,55 @@
                     </div>
 
                     <!-- Name -->
-                    <div id="signup-initial-fields">
-                        <div class="mb-4">
-                            <label for="signup-name" class="block text-sm font-semibold text-gray-700 mb-1.5">Full
-                                name</label>
-                            <input id="signup-name" type="text" required autocomplete="name" placeholder="Jane Doe"
-                                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-sm transition-all duration-150">
-                        </div>
-
-                        <!-- Email -->
-                        <div class="mb-4">
-                            <label for="signup-email" class="block text-sm font-semibold text-gray-700 mb-1.5">Email
-                                address</label>
-                            <input id="signup-email" type="email" required autocomplete="email"
-                                placeholder="jane@family.com"
-                                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-sm transition-all duration-150">
-                        </div>
-
-                        <!-- Password -->
-                        <div class="mb-4">
-                            <label for="signup-password"
-                                class="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
-                            <input id="signup-password" type="password" required autocomplete="new-password"
-                                placeholder="••••••••"
-                                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-sm transition-all duration-150">
-                        </div>
-
-                        <!-- Role -->
-                        <div class="mb-6">
-                            <label for="signup-role" class="block text-sm font-semibold text-gray-700 mb-1.5">Role</label>
-                            <select id="signup-role" required
-                                class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-sm transition-all duration-150">
-                                <option value="patient">Patient</option>
-                                <option value="caregiver">Caregiver</option>
-                            </select>
-                            <input type="hidden" id="signup-family-id" value="1">
-                        </div>
-
-                        <!-- Sign Up Button -->
-                        <button id="signup-btn" type="submit"
-                            class="w-full py-2.5 rounded-lg bg-gradient-to-r from-[#f43f5e] to-[#800020] text-white hover:opacity-90 font-semibold text-sm shadow-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 flex items-center justify-center space-x-2">
-                            <span id="signup-btn-text">Create Account</span>
-                            <svg id="signup-spinner" class="hidden animate-spin h-4 w-4 text-white"
-                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-                                </circle>
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                </path>
-                            </svg>
-                        </button>
+                    <div class="mb-4">
+                        <label for="signup-name" class="block text-sm font-semibold text-gray-700 mb-1.5">Full
+                            name</label>
+                        <input id="signup-name" type="text" required autocomplete="name" placeholder="Jane Doe"
+                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-sm transition-all duration-150">
                     </div>
 
-                    <!-- OTP Fields -->
-                    <div id="signup-otp-fields" class="hidden">
-                        <div class="mb-6">
-                            <label for="signup-otp" class="block text-sm font-semibold text-gray-700 mb-1.5">Enter Verification Code</label>
-                            <input id="signup-otp" type="text" autocomplete="one-time-code" placeholder="123456"
-                                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-sm transition-all duration-150">
-                        </div>
-                        <button id="verify-btn" type="button" onclick="handleVerifyOTP(event)"
-                            class="w-full py-2.5 rounded-lg bg-gradient-to-r from-[#f43f5e] to-[#800020] text-white hover:opacity-90 font-semibold text-sm shadow-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 flex items-center justify-center space-x-2">
-                            <span id="verify-btn-text">Verify</span>
-                            <svg id="verify-spinner" class="hidden animate-spin h-4 w-4 text-white"
-                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-                                </circle>
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                </path>
-                            </svg>
-                        </button>
+                    <!-- Email -->
+                    <div class="mb-4">
+                        <label for="signup-email" class="block text-sm font-semibold text-gray-700 mb-1.5">Email
+                            address</label>
+                        <input id="signup-email" type="email" required autocomplete="email"
+                            placeholder="jane@family.com"
+                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-sm transition-all duration-150">
                     </div>
+
+                    <!-- Password -->
+                    <div class="mb-4">
+                        <label for="signup-password"
+                            class="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
+                        <input id="signup-password" type="password" required autocomplete="new-password"
+                            placeholder="••••••••"
+                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-sm transition-all duration-150">
+                    </div>
+
+                    <!-- Role -->
+                    <div class="mb-6">
+                        <label for="signup-role" class="block text-sm font-semibold text-gray-700 mb-1.5">Role</label>
+                        <select id="signup-role" required
+                            class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-sm transition-all duration-150">
+                            <option value="patient">Patient</option>
+                            <option value="caregiver">Caregiver</option>
+                        </select>
+                        <input type="hidden" id="signup-family-id" value="1">
+                    </div>
+
+                    <!-- Sign Up Button -->
+                    <button id="signup-btn" type="submit"
+                        class="w-full py-2.5 rounded-lg bg-gradient-to-r from-[#f43f5e] to-[#800020] text-white hover:opacity-90 font-semibold text-sm shadow-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 flex items-center justify-center space-x-2">
+                        <span id="signup-btn-text">Create Account</span>
+                        <svg id="signup-spinner" class="hidden animate-spin h-4 w-4 text-white"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                    </button>
                 </form>
             </div>
 
@@ -730,7 +705,15 @@
                     class="w-full max-w-sm flex flex-col justify-center">
 
                     <div class="flex items-center justify-center space-x-3 mb-6">
-                        <img src="logo.png" class="h-14 w-14 object-contain" alt="MedSync Logo">
+                        <div
+                            class="w-10 h-10 rounded-lg bg-gradient-to-r from-[#f43f5e] to-[#800020] flex items-center justify-center shadow-md">
+                            <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 22 22 2 22"></polygon>
+                                <polyline points="2 12 22 12"></polyline>
+                                <line x1="12" y1="2" x2="12" y2="22"></line>
+                            </svg>
+                        </div>
                         <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">Sign In</h2>
                     </div>
 
@@ -795,7 +778,15 @@
             <!-- Overlay Container -->
             <div class="overlay-container bg-gradient-to-r from-[#f43f5e] to-black">
                 <div class="overlay-panel overlay-left">
-                        <img src="logo.png" class="h-20 w-20 mb-4 object-contain" alt="MedSync Logo">
+                    <div
+                        class="h-16 w-16 mb-4 rounded-xl bg-white/20 border border-white/20 flex items-center justify-center">
+                        <svg class="h-8 w-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 22 22 2 22"></polygon>
+                            <polyline points="2 12 22 12"></polyline>
+                            <line x1="12" y1="2" x2="12" y2="22"></line>
+                        </svg>
+                    </div>
                     <h1 class="font-bold text-3xl mb-2 text-white">Welcome Back!</h1>
                     <p class="text-sm font-light leading-relaxed mb-6 text-white">To keep connected with us please login
                         with your personal info</p>
@@ -804,7 +795,15 @@
                         In</button>
                 </div>
                 <div class="overlay-panel overlay-right">
-                        <img src="logo.png" class="h-20 w-20 mb-4 object-contain" alt="MedSync Logo">
+                    <div
+                        class="h-16 w-16 mb-4 rounded-xl bg-white/20 border border-white/20 flex items-center justify-center">
+                        <svg class="h-8 w-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 22 22 2 22"></polygon>
+                            <polyline points="2 12 22 12"></polyline>
+                            <line x1="12" y1="2" x2="12" y2="22"></line>
+                        </svg>
+                    </div>
                     <h1 class="font-bold text-3xl mb-2 text-white">Hello, Friend!</h1>
                     <p class="text-sm font-light leading-relaxed mb-6 text-white">Enter your personal details and start
                         journey with us</p>
@@ -826,8 +825,16 @@
             <div class="bg-white rounded-2xl shadow-xl p-8">
                 <!-- Header -->
                 <div class="text-center mb-8">
-                        <img src="logo.png" class="inline-flex h-20 w-20 mb-4 object-contain" alt="MedSync Logo">
-                    <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Welcome! <i class="ph ph-hand-waving"></i></h1>
+                    <div
+                        class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r from-[#f43f5e] to-[#800020] mb-4 shadow-lg">
+                        <svg class="h-8 w-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 22 22 2 22"></polygon>
+                            <polyline points="2 12 22 12"></polyline>
+                            <line x1="12" y1="2" x2="12" y2="22"></line>
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Welcome! 👋</h1>
                     <p class="text-sm text-gray-500 mt-1">Let's set up your household</p>
                 </div>
 
@@ -845,11 +852,11 @@
                     <div class="grid grid-cols-2 gap-2">
                         <button type="button" id="onboard-create-btn" onclick="setOnboardMode('create')"
                             class="py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all duration-200 bg-gradient-to-r from-[#f43f5e] to-[#800020] text-white border-transparent shadow-md">
-                            <i class="ph ph-house"></i> Create New Family
+                            🏠 Create New Family
                         </button>
                         <button type="button" id="onboard-join-btn" onclick="setOnboardMode('join')"
                             class="py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all duration-200 bg-white text-gray-600 border-gray-200 hover:border-gray-300">
-                            <i class="ph ph-handshake"></i> Join Existing
+                            🤝 Join Existing
                         </button>
                     </div>
                 </div>
@@ -872,7 +879,7 @@
                 <div class="text-center mt-5">
                     <button type="button" onclick="handleLogout()"
                         class="text-sm text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none">
-                        <i class="ph ph-door-open"></i> Logout / Switch Account
+                        🚪 Logout / Switch Account
                     </button>
                 </div>
             </div>
@@ -897,15 +904,23 @@
             <div class="flex flex-col gap-6">
                 <!-- Logo -->
                 <div class="flex items-center space-x-3 px-1">
-                    <img src="logo.png" class="h-12 w-12 flex-shrink-0 object-contain" alt="MedSync Logo">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-white/20 border border-white/30 flex-shrink-0 flex items-center justify-center shadow-md">
+                        <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 22 22 2 22"></polygon>
+                            <polyline points="2 12 22 12"></polyline>
+                            <line x1="12" y1="2" x2="12" y2="22"></line>
+                        </svg>
+                    </div>
                     <span
-                        class="font-bold text-white text-xl tracking-tight opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">MedSync</span>
+                        class="font-bold text-white text-xl tracking-tight opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">CoreFour</span>
                 </div>
 
                 <!-- Dashboard Button -->
                 <button id="nav-dashboard" onclick="switchView('patient')"
                     class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer">
-                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl"><i class="ph ph-house"></i></div>
+                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">🏠</div>
                     <span
                         class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Dashboard</span>
                 </button>
@@ -914,7 +929,7 @@
                 <div class="relative mt-2">
                     <button id="nav-family" onclick="switchView('family')"
                         class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer">
-                        <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl"><i class="ph ph-users"></i></div>
+                        <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">👥</div>
                         <span
                             class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Family
                             Profiles</span>
@@ -940,7 +955,7 @@
                 <!-- Calendar Button -->
                 <button id="nav-calendar" onclick="switchView('calendar')"
                     class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer mt-2">
-                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl"><i class="ph ph-calendar-blank"></i></div>
+                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">📅</div>
                     <span
                         class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Calendar</span>
                 </button>
@@ -948,7 +963,7 @@
                 <!-- Stock Inventory Button -->
                 <button id="nav-stock" onclick="switchView('stock')"
                     class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer mt-2">
-                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl"><i class="ph ph-package"></i></div>
+                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">📦</div>
                     <span
                         class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Inventory</span>
                 </button>
@@ -956,7 +971,7 @@
                 <!-- Prescription & Health Reports Button -->
                 <button id="nav-reports" onclick="switchView('health-reports')"
                     class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer mt-2">
-                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl"><i class="ph ph-file-text"></i></div>
+                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">📄</div>
                     <span
                         class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Health
                         Reports</span>
@@ -965,7 +980,7 @@
                 <!-- Emergency Assistance Button -->
                 <button id="nav-emergency" onclick="switchView('emergency')"
                     class="relative flex items-center gap-3 p-3 w-full border border-red-500/50 bg-red-950/20 hover:bg-red-900/30 rounded-xl shadow-lg transition-all text-white cursor-pointer mt-2">
-                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl"><i class="ph ph-ambulance"></i></div>
+                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">🚑</div>
                     <span
                         class="font-bold text-red-200 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Emergency Hub</span>
                     <span class="emergency-pulse-dot"></span>
@@ -984,7 +999,7 @@
                 <!-- Subscription Button -->
                 <button id="nav-subscription" onclick="switchView('subscription')"
                     class="flex items-center gap-3 p-3 w-full border border-white/30 bg-white/10 hover:bg-white/20 rounded-xl shadow-lg transition-all text-white cursor-pointer mb-3">
-                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl"><i class="ph ph-diamond"></i></div>
+                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">💎</div>
                     <span
                         class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-1 text-left whitespace-nowrap">Subscription</span>
                 </button>
@@ -992,7 +1007,7 @@
                 <!-- Logout -->
                 <button id="logout-btn" onclick="handleLogout()"
                     class="flex items-center space-x-3 p-3 w-full border border-white/20 bg-white/5 hover:bg-red-500/30 rounded-xl transition-all text-white cursor-pointer shadow-sm">
-                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl"><i class="ph ph-door-open"></i></div>
+                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center text-xl">🚪</div>
                     <span
                         class="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap text-left">Logout</span>
                 </button>
@@ -1168,7 +1183,7 @@
                     </div>
                     <button onclick="openUploadDocumentModal()"
                         class="px-5 py-2.5 bg-gradient-to-r from-[#f43f5e] to-[#800020] hover:opacity-95 text-white border border-white/20 font-bold rounded-xl shadow-lg transition-all flex items-center space-x-2 active:scale-95 text-sm self-start md:self-auto">
-                        <span class="text-lg"><i class="ph ph-file-text"></i></span>
+                        <span class="text-lg">📄</span>
                         <span>+ Upload Document</span>
                     </button>
                 </header>
@@ -1222,7 +1237,7 @@
                 <header class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:mx-[5%]">
                     <div>
                         <h1 class="text-4xl font-extrabold text-white tracking-tight drop-shadow-sm flex items-center gap-3">
-                            <span><i class="ph ph-ambulance"></i></span> Medical Emergency Hub
+                            <span>🚑</span> Medical Emergency Hub
                         </h1>
                         <p class="text-white/80 mt-1.5 text-base font-normal">Locate immediate medical assistance and emergency services.</p>
                     </div>
@@ -1236,7 +1251,7 @@
                 <!-- Location Status Alert / Manual Search -->
                 <div id="emergency-location-banner" class="mb-8 p-5 bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-white sm:mx-[5%]">
                     <div class="flex items-start gap-3">
-                        <span class="text-2xl mt-0.5"><i class="ph ph-map-pin"></i></span>
+                        <span class="text-2xl mt-0.5">📍</span>
                         <div class="flex-1">
                             <h4 class="font-bold text-base text-white">Live Location Access</h4>
                             <p class="text-sm text-white/80 mt-0.5" id="location-banner-text">Enable GPS coordinates to scan and show nearby medical support relative to you.</p>
@@ -1244,7 +1259,7 @@
                     </div>
                     <div class="flex items-center gap-2.5 w-full md:w-auto" id="location-action-area">
                         <button onclick="requestEmergencyLocation()" class="w-full md:w-auto px-5 py-2.5 bg-white text-gray-900 font-bold rounded-xl hover:bg-gray-100 active:scale-95 transition-all text-sm shadow-md">
-                            <i class="ph ph-broadcast"></i> Share GPS Location
+                            📡 Share GPS Location
                         </button>
                     </div>
                 </div>
@@ -1256,35 +1271,35 @@
                         <!-- Call Ambulance: opens call overlay, NOT Google Maps -->
                         <button onclick="showAmbulanceCallOverlay()" class="emergency-btn-red p-4 rounded-2xl flex items-center justify-between group active:scale-[0.98] transition-all cursor-pointer text-left text-white focus:outline-none">
                             <div class="flex items-center gap-3">
-                                <span class="text-2xl"><i class="ph ph-warning-circle"></i></span>
+                                <span class="text-2xl">🚨</span>
                                 <div>
                                     <div class="font-black text-sm uppercase tracking-wide">Call Ambulance</div>
                                     <div class="text-[11px] text-white/80 font-medium">View emergency lines</div>
                                 </div>
                             </div>
-                            <span class="text-lg group-hover:translate-x-1.5 transition-transform"><i class="ph ph-phone"></i></span>
+                            <span class="text-lg group-hover:translate-x-1.5 transition-transform">📞</span>
                         </button>
                         <!-- Nearest Hospital: scrolls to result panel inside app -->
                         <button onclick="scrollToCategory('hospital')" class="emergency-btn-blue p-4 rounded-2xl flex items-center justify-between group active:scale-[0.98] transition-all cursor-pointer text-left text-white focus:outline-none">
                             <div class="flex items-center gap-3">
-                                <span class="text-2xl"><i class="ph ph-hospital"></i></span>
+                                <span class="text-2xl">🏥</span>
                                 <div>
                                     <div class="font-black text-sm uppercase tracking-wide">Nearest Hospital</div>
                                     <div class="text-[11px] text-white/80 font-medium">Show results below</div>
                                 </div>
                             </div>
-                            <span class="text-lg group-hover:translate-x-1.5 transition-transform"><i class="ph ph-magnifying-glass"></i></span>
+                            <span class="text-lg group-hover:translate-x-1.5 transition-transform">🔍</span>
                         </button>
                         <!-- Nearest Pharmacy: scrolls to result panel inside app -->
                         <button onclick="scrollToCategory('pharmacy')" class="emergency-btn-green p-4 rounded-2xl flex items-center justify-between group active:scale-[0.98] transition-all cursor-pointer text-left text-white focus:outline-none">
                             <div class="flex items-center gap-3">
-                                <span class="text-2xl"><i class="ph ph-pill"></i></span>
+                                <span class="text-2xl">💊</span>
                                 <div>
                                     <div class="font-black text-sm uppercase tracking-wide">Nearest Pharmacy</div>
                                     <div class="text-[11px] text-white/80 font-medium">Show results below</div>
                                 </div>
                             </div>
-                            <span class="text-lg group-hover:translate-x-1.5 transition-transform"><i class="ph ph-magnifying-glass"></i></span>
+                            <span class="text-lg group-hover:translate-x-1.5 transition-transform">🔍</span>
                         </button>
                     </div>
                 </div>
@@ -1302,10 +1317,10 @@
                                 <!-- List/Map Toggle -->
                                 <div class="flex items-center gap-1 bg-black/40 border border-white/15 p-1 rounded-xl">
                                     <button onclick="setEmergencyViewMode('list')" id="btn-emergency-mode-list" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-[#f43f5e] text-white focus:outline-none">
-                                        <i class="ph ph-notepad"></i> List
+                                        📝 List
                                     </button>
                                     <button onclick="setEmergencyViewMode('map')" id="btn-emergency-mode-map" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-white/80 hover:text-white focus:outline-none">
-                                        <i class="ph ph-map-trifold"></i>️ Map
+                                        🗺️ Map
                                     </button>
                                 </div>
                             </div>
@@ -1337,7 +1352,7 @@
                     <div class="col-span-1 space-y-6">
                         <!-- Smart Nearest Action Helper -->
                         <div class="bg-gradient-to-br from-[#881337]/65 to-black border border-[#f43f5e]/30 shadow-2xl rounded-2xl p-6 text-white text-center hover:border-[#f43f5e]/50 transition-all">
-                            <span class="text-4xl block mb-2 animate-bounce"><i class="ph ph-lifebuoy"></i></span>
+                            <span class="text-4xl block mb-2 animate-bounce">🆘</span>
                             <h3 class="font-extrabold text-lg text-white">Nearest Support Locator</h3>
                             <p class="text-xs text-white/70 mt-2 mb-4">Tap below to automatically route and call the closest medical facility using your active coordinates.</p>
                             <button onclick="findNearestSupport()" class="w-full py-3 bg-[#f43f5e] hover:bg-[#e11d48] text-white font-bold rounded-xl text-sm transition-all shadow-md active:scale-95 focus:outline-none">
@@ -1389,33 +1404,33 @@
                 <div class="absolute inset-0 bg-black/70 backdrop-blur-md" onclick="closeAmbulanceCallOverlay()"></div>
                 <div class="relative z-10 bg-gray-900/95 backdrop-blur-2xl border border-red-500/40 text-white w-full max-w-sm rounded-2xl shadow-2xl m-4 overflow-hidden">
                     <div class="px-6 py-5 border-b border-white/10 flex justify-between items-center" style="background: linear-gradient(135deg, rgba(239,68,68,0.2), transparent)">
-                        <h3 class="text-lg font-extrabold text-white flex items-center gap-2"><i class="ph ph-warning-circle"></i> Emergency Ambulance</h3>
+                        <h3 class="text-lg font-extrabold text-white flex items-center gap-2">🚨 Emergency Ambulance</h3>
                         <button onclick="closeAmbulanceCallOverlay()" class="text-white/60 hover:text-white transition-colors focus:outline-none">✕</button>
                     </div>
                     <div class="p-6 space-y-3">
                         <a href="tel:112" class="flex items-center justify-between p-4 bg-red-600 hover:bg-red-700 active:scale-[0.97] transition-all rounded-xl cursor-pointer">
                             <div>
-                                <div class="font-extrabold text-base"><i class="ph ph-phone"></i> 112 — National Emergency</div>
+                                <div class="font-extrabold text-base">📞 112 — National Emergency</div>
                                 <div class="text-xs text-white/80">Police, Fire, Ambulance</div>
                             </div>
                             <span class="text-2xl font-bold">→</span>
                         </a>
                         <a href="tel:102" class="flex items-center justify-between p-4 bg-red-800/60 border border-red-500/30 hover:bg-red-800/80 active:scale-[0.97] transition-all rounded-xl cursor-pointer">
                             <div>
-                                <div class="font-extrabold text-sm"><i class="ph ph-phone"></i> 102 — Ambulance Direct</div>
+                                <div class="font-extrabold text-sm">📞 102 — Ambulance Direct</div>
                                 <div class="text-xs text-white/70">National ambulance helpline</div>
                             </div>
                             <span class="text-xl font-bold">→</span>
                         </a>
                         <a href="tel:108" class="flex items-center justify-between p-4 bg-orange-800/40 border border-orange-500/20 hover:bg-orange-800/60 active:scale-[0.97] transition-all rounded-xl cursor-pointer">
                             <div>
-                                <div class="font-extrabold text-sm"><i class="ph ph-phone"></i> 108 — Emergency Response</div>
+                                <div class="font-extrabold text-sm">📞 108 — Emergency Response</div>
                                 <div class="text-xs text-white/70">State ambulance service</div>
                             </div>
                             <span class="text-xl font-bold">→</span>
                         </a>
                         <button onclick="closeAmbulanceCallOverlay(); scrollToCategory('ambulance')" class="w-full mt-2 py-2.5 border border-white/20 bg-white/10 hover:bg-white/15 text-white/90 font-bold rounded-xl text-xs focus:outline-none transition-all">
-                            <i class="ph ph-magnifying-glass"></i> Find Nearby Ambulance Services
+                            🔍 Find Nearby Ambulance Services
                         </button>
                     </div>
                 </div>
@@ -1429,7 +1444,7 @@
                 <div class="relative z-10 bg-gray-900/90 backdrop-blur-2xl border border-white/20 text-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden m-4">
                     <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5">
                         <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                            <span><i class="ph ph-phone"></i></span> Add Emergency Contact
+                            <span>📞</span> Add Emergency Contact
                         </h3>
                         <button onclick="closeAddEmergencyContactModal()" class="text-white/70 hover:text-white transition-colors focus:outline-none">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1465,7 +1480,7 @@
                 <div class="relative z-10 bg-gray-900/90 backdrop-blur-2xl border border-white/20 text-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden m-4">
                     <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5">
                         <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                            <span><i class="ph ph-hospital"></i></span> Save Preferred Resource
+                            <span>🏥</span> Save Preferred Resource
                         </h3>
                         <button onclick="closeSaveLocationModal()" class="text-white/70 hover:text-white transition-colors focus:outline-none">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1477,9 +1492,9 @@
                         <div>
                             <label class="block text-xs font-semibold text-white/80 uppercase tracking-wider mb-1.5">Resource Type</label>
                             <select id="preferred-location-type" class="w-full px-3 py-2.5 bg-black/40 border border-white/20 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f43f5e] text-sm [color-scheme:dark]">
-                                <option value="hospital"><i class="ph ph-hospital"></i> Preferred Hospital</option>
-                                <option value="pharmacy"><i class="ph ph-pill"></i> Preferred Pharmacy</option>
-                                <option value="clinic"><i class="ph ph-stethoscope"></i> Preferred Clinic</option>
+                                <option value="hospital">🏥 Preferred Hospital</option>
+                                <option value="pharmacy">💊 Preferred Pharmacy</option>
+                                <option value="clinic">🩺 Preferred Clinic</option>
                             </select>
                         </div>
                         <div>
@@ -1506,7 +1521,7 @@
                     class="relative z-10 bg-gray-900/90 backdrop-blur-2xl border border-white/20 text-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up m-4">
                     <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5">
                         <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                            <span><i class="ph ph-users"></i></span> Add Family Member
+                            <span>👥</span> Add Family Member
                         </h3>
                         <button onclick="closeAddFamilyMemberModal()"
                             class="text-white/70 hover:text-white transition-colors">
@@ -1584,7 +1599,7 @@
                     <div
                         class="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5 sticky top-0 z-10">
                         <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                            <span><i class="ph ph-file-text"></i></span> Upload Prescription / Report
+                            <span>📄</span> Upload Prescription / Report
                         </h3>
                         <button onclick="closeUploadDocumentModal()"
                             class="text-white/70 hover:text-white transition-colors">
@@ -1643,7 +1658,7 @@
 
                         <button type="submit" id="doc-upload-submit-btn"
                             class="w-full py-3 rounded-xl bg-gradient-to-r from-[#f43f5e] to-[#800020] text-white font-bold text-sm shadow-lg hover:opacity-90 transition-all flex items-center justify-center space-x-2">
-                            <span><i class="ph ph-rocket-launch"></i> Save to Medical Vault</span>
+                            <span>🚀 Save to Medical Vault</span>
                         </button>
                     </form>
                 </div>
@@ -1665,7 +1680,7 @@
                         <div class="flex items-center space-x-3">
                             <a id="view-doc-download" download href="#"
                                 class="px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-white">
-                                <i class="ph ph-inbox"></i> Download
+                                📥 Download
                             </a>
                             <button onclick="closeViewDocumentModal()"
                                 class="text-white/70 hover:text-white transition-colors">
@@ -1842,7 +1857,7 @@
                     <div
                         class="border-b border-white/10 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/5">
                         <div class="flex items-center space-x-2.5">
-                            <span class="text-xl"><i class="ph ph-package"></i></span>
+                            <span class="text-xl">📦</span>
                             <h2 class="text-lg font-semibold text-white">Medication Stock</h2>
                         </div>
 
@@ -1947,7 +1962,7 @@
                                         title="Scan Medicine Bottle">
                                     <button type="button" id="scanBtn"
                                         class="w-full py-3 px-4 bg-gradient-to-r from-[#f43f5e] to-[#800020] hover:opacity-95 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-[#f43f5e]/25 transition-all flex items-center justify-center space-x-2 active:scale-95 cursor-pointer">
-                                        <span class="text-lg"><i class="ph ph-camera"></i></span>
+                                        <span class="text-lg">📸</span>
                                         <span>Scan Medicine Bottle</span>
                                     </button>
                                 </div>
@@ -2055,7 +2070,7 @@
                         <div class="flex items-center space-x-3">
                             <div
                                 class="w-10 h-10 rounded-xl bg-red-500/20 border border-red-500/30 text-red-300 flex items-center justify-center font-bold text-lg shadow-inner">
-                                <i class="ph ph-trash"></i>️
+                                🗑️
                             </div>
                             <div>
                                 <h3 class="text-lg font-extrabold text-white tracking-tight">Remove Stock</h3>
@@ -2091,7 +2106,7 @@
                             </button>
                             <button type="button" id="remove-mode-all" onclick="setRemoveMode('all')"
                                 class="py-2.5 px-3 rounded-xl border border-white/15 bg-white/5 text-white/70 text-xs font-semibold transition-all hover:bg-white/10">
-                                <i class="ph ph-trash"></i>️ Delete Entire Item
+                                🗑️ Delete Entire Item
                             </button>
                         </div>
 
@@ -2170,7 +2185,7 @@
                             </div>
                             <div class="text-[11.5px] text-rose-400 font-semibold mb-5 min-h-[15px]">&nbsp;</div>
 
-                            <button onclick="alert('You are already using the MedSync Free plan.')" id="btn-free" class="w-full py-2.5 rounded-xl text-sm font-bold border border-white/[0.09] bg-white/[0.04] text-white hover:bg-white/[0.08] transition-all mb-5 cursor-pointer">Get Started Free</button>
+                            <button onclick="switchView('dashboard')" id="btn-free" class="w-full py-2.5 rounded-xl text-sm font-bold border border-white/[0.09] bg-white/[0.04] text-white hover:bg-white/[0.08] transition-all mb-5 cursor-pointer">Get Started Free</button>
 
                             <div class="h-px bg-white/[0.09] mb-4"></div>
                             <ul class="flex flex-col gap-3 flex-1 text-xs text-white/70">
@@ -2408,10 +2423,6 @@
                 container.classList.add('right-panel-active');
             } else {
                 container.classList.remove('right-panel-active');
-                const initialFields = document.getElementById('signup-initial-fields');
-                const otpFields = document.getElementById('signup-otp-fields');
-                if (initialFields) initialFields.classList.remove('hidden');
-                if (otpFields) otpFields.classList.add('hidden');
             }
         }
 
@@ -2459,27 +2470,56 @@
             btn.disabled = true;
 
             try {
-                const res = await fetch(`${API_BASE}/api/signup`, {
+                const res = await fetch(`${API_BASE}/users/`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
+                    body: JSON.stringify({
+                        name,
+                        email,
+                        password,
+                        role,
+                        family_id: familyId
+                    })
                 });
 
-                if (res.ok) {
-                    document.getElementById('signup-initial-fields').classList.add('hidden');
-                    document.getElementById('signup-otp-fields').classList.remove('hidden');
-                    successTxt.textContent = 'Verification code sent to your email.';
-                    successEl.classList.remove('hidden');
+                if (res.status === 201 || res.ok) {
+                    const userData = await res.json();
+
+                    // Store the new user and transition to onboarding
+                    currentUser = userData;
+
+                    // Reset signup form
+                    document.getElementById('signup-form').reset();
+
+                    // Pre-fill onboarding display name
+                    const onboardName = document.getElementById('onboard-display-name');
+                    if (onboardName) onboardName.value = userData.name || name;
+
+                    // Hide auth, show onboarding
+                    document.getElementById('view-login').classList.add('hidden');
+                    const onboarding = document.getElementById('view-onboarding');
+                    onboarding.classList.remove('hidden');
+                    onboarding.classList.add('animate-fade-in-up');
                 } else {
-                    let message = 'Could not send verification code.';
+                    // Parse error from backend
+                    let message = 'Could not create account.';
                     try {
                         const errBody = await res.json();
                         if (typeof errBody.detail === 'string') {
                             message = errBody.detail;
                         } else if (Array.isArray(errBody.detail)) {
-                            message = errBody.detail.map(d => d.msg || d).join(', ');
+                            message = errBody.detail.map(d => {
+                                const msg = d.msg || d;
+                                if ((d.loc && d.loc.includes('password')) || (typeof msg === 'string' && msg.includes('8 characters'))) {
+                                    return 'Password must be at least 8 characters long.';
+                                }
+                                return msg;
+                            }).join(', ');
                         }
                     } catch (_) { }
+                    if (message.toLowerCase().includes('string should have at least') || message.toLowerCase().includes('at least 8 characters')) {
+                        message = 'Password must be at least 8 characters long.';
+                    }
                     errorTxt.textContent = message;
                     errorEl.classList.remove('hidden');
                 }
@@ -2488,91 +2528,6 @@
                 errorEl.classList.remove('hidden');
             } finally {
                 btnText.textContent = 'Create Account';
-                spinner.classList.add('hidden');
-                btn.disabled = false;
-            }
-        }
-
-        async function handleVerifyOTP(event) {
-            event.preventDefault();
-            const otp = document.getElementById('signup-otp').value.trim();
-            const email = document.getElementById('signup-email').value.trim();
-            const errorEl = document.getElementById('signup-error');
-            const errorTxt = document.getElementById('signup-error-text');
-            const successEl = document.getElementById('signup-success');
-            const btn = document.getElementById('verify-btn');
-            const btnText = document.getElementById('verify-btn-text');
-            const spinner = document.getElementById('verify-spinner');
-
-            if (!otp) {
-                errorTxt.textContent = 'Please enter the verification code.';
-                errorEl.classList.remove('hidden');
-                return;
-            }
-
-            errorEl.classList.add('hidden');
-            successEl.classList.add('hidden');
-            btnText.textContent = 'Verifying...';
-            spinner.classList.remove('hidden');
-            btn.disabled = true;
-
-            try {
-                const verifyRes = await fetch(`${API_BASE}/api/verify`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, otp })
-                });
-
-                if (verifyRes.ok) {
-                    const name = document.getElementById('signup-name').value.trim();
-                    const password = document.getElementById('signup-password').value;
-                    const role = document.getElementById('signup-role').value;
-                    const familyId = parseInt(document.getElementById('signup-family-id').value, 10);
-                    
-                    const res = await fetch(`${API_BASE}/users/`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, email, password, role, family_id: familyId })
-                    });
-
-                    if (res.status === 201 || res.ok) {
-                        const userData = await res.json();
-                        currentUser = userData;
-                        document.getElementById('signup-form').reset();
-                        
-                        const onboardName = document.getElementById('onboard-display-name');
-                        if (onboardName) onboardName.value = userData.name || name;
-                        
-                        document.getElementById('view-login').classList.add('hidden');
-                        const onboarding = document.getElementById('view-onboarding');
-                        onboarding.classList.remove('hidden');
-                        onboarding.classList.add('animate-fade-in-up');
-
-                        document.getElementById('signup-initial-fields').classList.remove('hidden');
-                        document.getElementById('signup-otp-fields').classList.add('hidden');
-                    } else {
-                        let message = 'Could not create account.';
-                        try {
-                            const errBody = await res.json();
-                            if (typeof errBody.detail === 'string') message = errBody.detail;
-                        } catch (_) { }
-                        errorTxt.textContent = message;
-                        errorEl.classList.remove('hidden');
-                    }
-                } else {
-                    let message = 'Invalid verification code.';
-                    try {
-                        const errBody = await verifyRes.json();
-                        if (typeof errBody.detail === 'string') message = errBody.detail;
-                    } catch (_) {}
-                    errorTxt.textContent = message;
-                    errorEl.classList.remove('hidden');
-                }
-            } catch (err) {
-                errorTxt.textContent = err.message || 'Network error. Please try again.';
-                errorEl.classList.remove('hidden');
-            } finally {
-                btnText.textContent = 'Verify';
                 spinner.classList.add('hidden');
                 btn.disabled = false;
             }
@@ -2650,7 +2605,7 @@
                 createBtn.className = 'py-2.5 px-4 rounded-lg text-sm font-semibold border-2 transition-all duration-200 bg-white text-gray-600 border-gray-200 hover:border-gray-300';
                 familyLabel.textContent = 'Family Code';
                 familyInput.placeholder = 'e.g. smith-family-2024';
-                submitBtn.textContent = '<i class="ph ph-handshake"></i> Join Household';
+                submitBtn.textContent = '🤝 Join Household';
             }
         }
 
@@ -2931,7 +2886,7 @@
             if (!docs || docs.length === 0) {
                 grid.innerHTML = `
                     <div class="col-span-full rounded-2xl p-12 text-center border border-dashed border-white/20 bg-white/5 backdrop-blur-xl text-white">
-                        <span class="text-4xl mb-3 block"><i class="ph ph-file-text"></i></span>
+                        <span class="text-4xl mb-3 block">📄</span>
                         <p class="text-white text-base font-bold">No Health Documents Uploaded</p>
                         <p class="text-white/60 mt-1 text-xs">Upload prescriptions, test results, or lab reports to store them safely.</p>
                     </div>
@@ -2961,15 +2916,15 @@
                         <div class="mt-5 pt-3 border-t border-white/10 flex items-center gap-2">
                             <button onclick="viewDocument(${doc.id})"
                                 class="flex-1 py-2 px-3 bg-white/15 hover:bg-white/25 border border-white/20 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1 text-white">
-                                <i class="ph ph-eye"></i> View
+                                👁 View
                             </button>
                             <a href="${doc.file_data}" download="${doc.file_name}"
                                 class="py-2 px-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-xs font-semibold transition-all flex items-center justify-center text-white">
-                                <i class="ph ph-inbox"></i>
+                                📥
                             </a>
                             <button onclick="deleteDocument(${doc.id})"
                                 class="py-2 px-3 bg-red-500/20 hover:bg-red-500/40 border border-red-500/30 rounded-xl text-xs font-semibold transition-all flex items-center justify-center text-red-200">
-                                <i class="ph ph-trash"></i>
+                                🗑
                             </button>
                         </div>
                     </div>
@@ -3178,7 +3133,7 @@
                     if (!data || data.length === 0) {
                         container.innerHTML = `
                             <div class="rounded-xl p-10 text-center border border-dashed border-white/20 bg-white/5 backdrop-blur-xl text-white">
-                                <span class="text-3xl block mb-2"><i class="ph ph-confetti"></i></span>
+                                <span class="text-3xl block mb-2">🎉</span>
                                 <p class="text-white text-base font-semibold">No medications scheduled for ${member.name} today!</p>
                                 <p class="text-white/60 mt-1 text-sm">You're all caught up.</p>
                             </div>
@@ -3458,7 +3413,7 @@
                 const buttons = document.querySelectorAll('button');
                 buttons.forEach(btn => {
                     if (btn.disabled && btn.innerHTML.includes('Analyzing')) {
-                        btn.innerHTML = '<i class="ph ph-camera"></i> Scan Medicine Bottle';
+                        btn.innerHTML = '📸 Scan Medicine Bottle';
                         btn.disabled = false;
                     }
                 });
@@ -3566,7 +3521,7 @@
                     <tr>
                         <td colspan="8" class="px-6 py-20 text-center">
                             <div class="flex flex-col items-center space-y-3">
-                                <span class="text-4xl"><i class="ph ph-envelope-open"></i></span>
+                                <span class="text-4xl">📭</span>
                                 <p class="text-white/70 font-semibold text-base">No matching medications found</p>
                                 <p class="text-white/40 text-sm">Try clearing your search query or add a new medication.</p>
                             </div>
@@ -4258,7 +4213,7 @@
                             }`;
                         alertDiv.innerHTML = `
                             <div class="flex items-center space-x-3">
-                                <span class="text-xl">${isExpired ? '<i class="ph ph-warning-circle"></i>' : '⚠️'}</span>
+                                <span class="text-xl">${isExpired ? '🚨' : '⚠️'}</span>
                                 <div>
                                     <h5 class="font-extrabold text-sm text-white">${w.message}</h5>
                                     <p class="text-xs text-white/70">Check Stock Inventory to manage or replace this item.</p>
@@ -4567,7 +4522,7 @@
                 const actionArea = document.getElementById('location-action-area');
                 if (!textEl || !actionArea) return;
 
-                textEl.innerHTML = '<i class="ph ph-broadcast"></i> Getting your precise GPS location...';
+                textEl.innerHTML = '📡 Getting your precise GPS location...';
                 actionArea.innerHTML = `
                     <div class="flex items-center gap-2 text-white/70 text-xs">
                         <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -4629,7 +4584,7 @@
                     textEl.innerHTML = `<strong>GPS Active:</strong> Your location is locked (${emergencyLat.toFixed(5)}, ${emergencyLng.toFixed(5)})${accLabel}`;
                     actionArea.innerHTML = `
                         <button onclick="requestEmergencyLocation()" class="px-4 py-2 border border-white/20 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 focus:outline-none">
-                            <i class="ph ph-arrows-clockwise"></i> Re-sync GPS
+                            🔄 Re-sync GPS
                         </button>
                     `;
                 }
@@ -4706,7 +4661,7 @@
                 if (!emergencyLat || !emergencyLng) {
                     const textEl = document.getElementById('location-banner-text');
                     if (textEl) {
-                        textEl.innerHTML = `<i class="ph ph-broadcast"></i> Getting GPS for <strong>${category}</strong> search…`;
+                        textEl.innerHTML = `📡 Getting GPS for <strong>${category}</strong> search…`;
                     }
                     if (!navigator.geolocation) {
                         alert('Geolocation not supported. Please enter a manual location.');
@@ -4876,7 +4831,7 @@ out body center;`;
                 if (currentResults.length === 0) {
                     listEl.innerHTML = `
                         <div class="text-center py-12 text-white/60">
-                            <span class="text-4xl block mb-3"><i class="ph ph-magnifying-glass"></i></span>
+                            <span class="text-4xl block mb-3">🔍</span>
                             <p class="text-sm font-semibold">No facilities found within 8 km.</p>
                             <p class="text-xs mt-1 opacity-70">Try re-syncing GPS or entering a manual location.</p>
                         </div>`;
@@ -4887,10 +4842,10 @@ out body center;`;
                     const card = document.createElement('div');
                     card.className = 'p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3 text-white hover:bg-white/10 transition-all';
 
-                    const icon = { hospital: '<i class="ph ph-hospital"></i>', pharmacy: '<i class="ph ph-pill"></i>', clinic: '<i class="ph ph-stethoscope"></i>', ambulance: '<i class="ph ph-ambulance"></i>' }[res.category] || '<i class="ph ph-hospital"></i>';
+                    const icon = { hospital: '🏥', pharmacy: '💊', clinic: '🩺', ambulance: '🚑' }[res.category] || '🏥';
 
                     const callHtml = res.phone
-                        ? `<a href="tel:${res.phone}" class="px-4 py-2 border border-amber-400/40 hover:border-amber-400 text-amber-300 font-bold rounded-xl text-xs text-center focus:outline-none whitespace-nowrap"><i class="ph ph-phone"></i> Call</a>`
+                        ? `<a href="tel:${res.phone}" class="px-4 py-2 border border-amber-400/40 hover:border-amber-400 text-amber-300 font-bold rounded-xl text-xs text-center focus:outline-none whitespace-nowrap">📞 Call</a>`
                         : '';
 
                     // Safely escape name for inline event handler
@@ -4903,7 +4858,7 @@ out body center;`;
                                 <h4 class="font-extrabold text-sm text-white truncate">${res.name}</h4>
                                 <p class="text-xs text-white/55 mt-0.5 truncate">${res.address}</p>
                                 <div class="flex flex-wrap gap-1.5 mt-2">
-                                    <span class="px-2 py-0.5 bg-white/10 rounded-md text-[10px] font-semibold text-white/80"><i class="ph ph-map-pin"></i> ${res.distance.toFixed(1)} km</span>
+                                    <span class="px-2 py-0.5 bg-white/10 rounded-md text-[10px] font-semibold text-white/80">📍 ${res.distance.toFixed(1)} km</span>
                                     <span class="px-2 py-0.5 bg-white/10 rounded-md text-[10px] font-semibold text-white/80">⏰ ~${res.time}</span>
                                     <span class="px-2 py-0.5 bg-green-500/20 text-green-300 rounded-md text-[10px] font-bold">${res.status}</span>
                                 </div>
@@ -4914,7 +4869,7 @@ out body center;`;
                             <button
                                 onclick="openResourceDirections(${res.lat}, ${res.lng}, '${safeNameAttr}')"
                                 class="flex-1 md:flex-none px-4 py-2 bg-[#f43f5e] hover:bg-[#e11d48] text-white font-bold rounded-xl text-xs active:scale-95 transition-all focus:outline-none flex items-center justify-center gap-1.5">
-                                <i class="ph ph-compass"></i> Directions
+                                🧭 Directions
                             </button>
                         </div>`;
                     listEl.appendChild(card);
@@ -4966,14 +4921,14 @@ out body center;`;
                 });
                 L.marker([emergencyLat, emergencyLng], { icon: userIcon })
                  .addTo(emergencyMap)
-                 .bindPopup('<b><i class="ph ph-map-pin"></i> Your Location</b>')
+                 .bindPopup('<b>📍 Your Location</b>')
                  .openPopup();
 
                 // Facility markers
                 currentResults.slice(0, 15).forEach(res => {
                     const colorMap = { pharmacy: '#10b981', hospital: '#3b82f6', clinic: '#0d9488', ambulance: '#ef4444' };
                     const pinColor = colorMap[res.category] || '#ef4444';
-                    const pinEmoji = { pharmacy: '<i class="ph ph-pill"></i>', hospital: '<i class="ph ph-hospital"></i>', clinic: '<i class="ph ph-stethoscope"></i>', ambulance: '<i class="ph ph-ambulance"></i>' }[res.category] || '<i class="ph ph-hospital"></i>';
+                    const pinEmoji = { pharmacy: '💊', hospital: '🏥', clinic: '🩺', ambulance: '🚑' }[res.category] || '🏥';
 
                     const pinIcon = L.divIcon({
                         html: `<div style="width:32px;height:32px;background:${pinColor};border:2px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.4);">${pinEmoji}</div>`,
@@ -4989,10 +4944,10 @@ out body center;`;
                         <div style="min-width:160px;padding:4px;">
                             <div style="font-weight:800;font-size:13px;margin-bottom:3px;">${res.name}</div>
                             <div style="font-size:11px;color:#6b7280;margin-bottom:5px;">${res.address}</div>
-                            <div style="font-size:10px;font-weight:600;margin-bottom:6px;"><i class="ph ph-map-pin"></i> ${res.distance.toFixed(1)} km · ⏰ ${res.time}</div>
+                            <div style="font-size:10px;font-weight:600;margin-bottom:6px;">📍 ${res.distance.toFixed(1)} km · ⏰ ${res.time}</div>
                             <button onclick="openResourceDirections(${res.lat},${res.lng},'${safeName}')"
                                 style="background:#f43f5e;color:white;border:none;padding:6px 10px;border-radius:8px;font-size:10px;font-weight:bold;width:100%;cursor:pointer;">
-                                <i class="ph ph-compass"></i> Get Directions
+                                🧭 Get Directions
                             </button>
                         </div>`);
                 });
@@ -5004,7 +4959,7 @@ out body center;`;
                 if (!listEl) return;
                 listEl.innerHTML = `
                     <div class="p-4 bg-yellow-500/10 border border-yellow-500/20 text-yellow-200 rounded-2xl mb-4 text-xs font-semibold">
-                        ${!navigator.onLine ? '<i class="ph ph-cell-signal-full"></i> No internet connection' : '⚠️ Live search unavailable'} — showing locally saved resources only.
+                        ${!navigator.onLine ? '📶 No internet connection' : '⚠️ Live search unavailable'} — showing locally saved resources only.
                     </div>`;
 
                 const saved    = JSON.parse(localStorage.getItem('medsync_pref_locations') || '[]');
@@ -5013,7 +4968,7 @@ out body center;`;
                 if (filtered.length === 0) {
                     listEl.innerHTML += `
                         <div class="text-center py-10 text-white/60">
-                            <span class="text-3xl block"><i class="ph ph-device-mobile-slash"></i></span>
+                            <span class="text-3xl block">📴</span>
                             <p class="text-sm font-semibold mt-2">No saved resources for this category.</p>
                             <p class="text-xs mt-1">Add them via "+ Save Preferred" while online.</p>
                         </div>`;
@@ -5111,7 +5066,7 @@ out body center;`;
                                 Call
                             </a>
                             <button onclick="deleteEmergencyContact(${c.id})" class="p-1 hover:text-red-400 text-white/50 transition-colors focus:outline-none">
-                                <i class="ph ph-trash"></i>️
+                                🗑️
                             </button>
                         </div>
                     `;
@@ -5171,9 +5126,9 @@ out body center;`;
                 }
 
                 locations.forEach(l => {
-                    let typeIcon = '<i class="ph ph-hospital"></i>';
-                    if (l.type === 'pharmacy') typeIcon = '<i class="ph ph-pill"></i>';
-                    else if (l.type === 'clinic') typeIcon = '<i class="ph ph-stethoscope"></i>';
+                    let typeIcon = '🏥';
+                    if (l.type === 'pharmacy') typeIcon = '💊';
+                    else if (l.type === 'clinic') typeIcon = '🩺';
 
                     const row = document.createElement('div');
                     row.className = "flex justify-between items-center p-3 bg-white/5 border border-white/10 rounded-xl";
@@ -5190,7 +5145,7 @@ out body center;`;
                                 Map
                             </button>
                             <button onclick="deletePreferredLocation(${l.id})" class="p-1 hover:text-red-400 text-white/50 transition-colors focus:outline-none">
-                                <i class="ph ph-trash"></i>️
+                                🗑️
                             </button>
                         </div>
                     `;
@@ -5257,24 +5212,68 @@ async function proceedToPayment() {
     const btnText = document.getElementById('payment-btn-text');
     const spinner = document.getElementById('payment-spinner');
     
-    btnText.innerText = 'Processing...';
+    btnText.innerText = 'Initializing...';
     spinner.classList.remove('hidden');
     
-    setTimeout(() => {
-        alert("Payment Successful (Mock)! Welcome to MedSync " + selectedPlan);
-        closeCheckoutModal();
+    try {
+        const response = await fetch(`/api/payment/create-checkout?family_id=${currentFamilyId}&user_id=${currentUserId}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                plan: selectedPlan,
+                billing_cycle: currentBillingCycle
+            })
+        });
         
+        if(!response.ok) {
+            const err = await response.json();
+            alert("Error: " + (err.detail || "Could not initialize payment. Are payments configured?"));
+            throw new Error("Payment init failed");
+        }
+        
+        const data = await response.json();
+        
+        var options = {
+            "key": data.key,
+            "subscription_id": data.subscription_id,
+            "name": data.name,
+            "description": data.description,
+            "handler": async function (response) {
+                // Verify payment
+                btnText.innerText = 'Verifying...';
+                try {
+                    const verifyRes = await fetch(`/api/payment/verify?family_id=${currentFamilyId}&user_id=${currentUserId}&razorpay_payment_id=${response.razorpay_payment_id}&razorpay_subscription_id=${response.razorpay_subscription_id}&razorpay_signature=${response.razorpay_signature}`, {
+                        method: 'POST'
+                    });
+                    
+                    if(verifyRes.ok) {
+                        alert("🎉 Payment Successful! Welcome to " + data.description);
+                        closeCheckoutModal();
+                        loadSubscriptionStatus();
+                        switchView('dashboard');
+                    } else {
+                        alert("Payment verification failed.");
+                    }
+                } catch(e) {
+                    alert("Error verifying payment.");
+                }
+            },
+            "theme": {
+                "color": "#f43f5e"
+            }
+        };
+        var rzp1 = new Razorpay(options);
+        rzp1.on('payment.failed', function (response){
+            alert("Payment Failed. Your current plan has not been changed.");
+        });
+        rzp1.open();
+        
+    } catch(err) {
+        console.error(err);
+    } finally {
         btnText.innerText = 'Continue to Payment';
         spinner.classList.add('hidden');
-        
-        // Mock updating subscription status
-        const sec = document.getElementById('manage-subscription-section');
-        if (sec) {
-            sec.classList.remove('hidden');
-            document.getElementById('current-plan-display').innerText = selectedPlan === 'family' ? 'MedSync Family' : 'MedSync Care+';
-            document.getElementById('current-status-display').innerText = 'active';
-        }
-    }, 1000);
+    }
 }
 
 async function loadSubscriptionStatus() {

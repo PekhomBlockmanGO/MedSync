@@ -4,8 +4,17 @@
         "name": "Paracetamol",
         "batch_number": "",
         "dosage": "500",
-        "quantity": 15,
+        "quantity": 13,
         "expiry_date": "2026-10-17",
         "id": 2
+    },
+    {
+        "gtin": "3445566765543",
+        "name": "Tylenol Extra Strength",
+        "batch_number": "sdsdsdsd",
+        "dosage": "40",
+        "quantity": "10",
+        "expiry_date": "2028-07-06",
+        "id": 3
     }
 ]
