@@ -48,6 +48,7 @@ requests
 python-multipart
 Pillow
 openai
+groq
 razorpay==1.4.1 
  
- 
+ 

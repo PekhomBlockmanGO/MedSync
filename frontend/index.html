@@ -45,10 +45,135 @@
                 </div>
             </div>
         </section>
+
+        <!-- Gemini Medical Assistant Section -->
+        <section class="bg-white rounded-2xl shadow-md border border-blue-100 overflow-hidden mt-8">
+            <div class="bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-5 border-b border-purple-700">
+                <div class="flex items-center space-x-3">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5a4 4 0 100-8 4 4 0 000 8z"></path></svg>
+                    <h2 class="text-2xl font-bold text-white tracking-wide">Gemini Medical Assistant</h2>
+                </div>
+            </div>
+            
+            <div class="p-8">
+                <!-- Medical Disclaimer -->
+                <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-amber-800">
+                                ⚠️ <strong>Medical Disclaimer:</strong> This AI assistant provides educational information only. Always consult a qualified healthcare provider before making medical decisions.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Form -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="medicine-name" class="block text-sm font-semibold text-gray-700 mb-2">Medicine Name</label>
+                        <input type="text" id="medicine-name" placeholder="e.g., Aspirin, Ibuprofen" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none">
+                    </div>
+
+                    <div>
+                        <label for="query-type" class="block text-sm font-semibold text-gray-700 mb-2">What would you like to know?</label>
+                        <select id="query-type" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none">
+                            <option value="side_effects">Side Effects</option>
+                            <option value="substitutes">Substitute Medicines</option>
+                            <option value="general">General Information</option>
+                        </select>
+                    </div>
+
+                    <button onclick="queryGemini()" class="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold rounded-lg shadow-md transition-all duration-200">
+                        Get Information
+                    </button>
+                </div>
+
+                <!-- Response Container -->
+                <div id="gemini-response" class="mt-8">
+                    <!-- Response will be rendered here -->
+                </div>
+            </div>
+        </section>
     </div>
 
     <!-- Logic to Fetch and Render the Schedule -->
     <script>
+        async function queryGemini() {
+            const medicineName = document.getElementById('medicine-name').value.trim();
+            const queryType = document.getElementById('query-type').value;
+            const responseDiv = document.getElementById('gemini-response');
+
+            if (!medicineName) {
+                alert('Please enter a medicine name');
+                return;
+            }
+
+            // Show loading state
+            responseDiv.innerHTML = `
+                <div class="flex justify-center items-center py-8">
+                    <svg class="animate-spin -ml-1 mr-3 h-6 w-6 text-purple-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="text-purple-500 font-semibold animate-pulse">Consulting Gemini...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/gemini/assistant', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        medicine_name: medicineName,
+                        query_type: queryType
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to get response');
+                }
+
+                const data = await response.json();
+                
+                // Format response
+                const typeLabel = {
+                    'side_effects': 'Side Effects',
+                    'substitutes': 'Substitute Medicines',
+                    'general': 'General Information'
+                };
+
+                responseDiv.innerHTML = `
+                    <div class="border-l-4 border-purple-500 bg-purple-50 p-6 rounded-lg mt-6">
+                        <h3 class="text-lg font-bold text-purple-900 mb-3">
+                            ${typeLabel[queryType]} for ${data.medicine}
+                        </h3>
+                        <div class="text-gray-700 whitespace-pre-wrap leading-relaxed mb-4">
+                            ${data.response}
+                        </div>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm text-yellow-800">
+                            <strong>Disclaimer:</strong> ${data.disclaimer}
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error("Error querying Gemini:", error);
+                responseDiv.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+                        <strong>Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
         function getDailySchedule() {
             // Fetch schedule for user_id = 2
             fetch("http://127.0.0.1:8000/dashboard/2/schedule")

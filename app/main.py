@@ -1200,3 +1200,85 @@ def delete_health_document(doc_id: int, db: Session = Depends(get_db)):
     db.commit()
     return None
 
+
+# ---------------------------------------------------------------------------
+# POST /api/groq/assistant  — Groq AI Medical Assistant
+# ---------------------------------------------------------------------------
+
+from groq import Groq
+from pydantic import BaseModel
+
+class MedicineQuery(BaseModel):
+    medicine_name: str
+    query_type: str  # "side_effects", "substitutes", or "general"
+
+@app.post(
+    "/api/groq/assistant",
+    tags=["AI Assistant"],
+    summary="Query Groq for medicine information",
+)
+def groq_medical_assistant(query: MedicineQuery, db: Session = Depends(get_db)):
+    """
+    Query the Groq AI model for:
+    - Side effects of a medicine
+    - Substitute medicines
+    - General medicine information
+    
+    Includes a medical disclaimer to consult healthcare professionals.
+    """
+    try:
+        groq_api_key = os.getenv("GROQ_API_KEY")
+        if not groq_api_key:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Groq API key not configured"
+            )
+        
+        # Initialize Groq client
+        client = Groq(api_key=groq_api_key)
+        
+        # Build prompt based on query type
+        medicine = query.medicine_name.strip()
+        
+        if query.query_type == "side_effects":
+            prompt = f"""Please provide a concise list of common side effects for the medicine '{medicine}'. 
+                        Format as bullet points. Keep response under 200 words."""
+        elif query.query_type == "substitutes":
+            prompt = f"""Please suggest 2-3 common substitute medicines for '{medicine}' that have similar therapeutic effects.
+                        Include brief notes on each. Keep response under 200 words."""
+        else:
+            prompt = f"""Please provide general information about the medicine '{medicine}', including its uses and common dosage.
+                        Keep response under 200 words."""
+        
+        # Call Groq API
+        response = client.chat.completions.create(
+            model="mixtral-8x7b-32768",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a helpful medical information assistant. Provide accurate, concise medical information."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.7,
+            max_tokens=500
+        )
+        
+        # Build response with disclaimer
+        return {
+            "medicine": medicine,
+            "query_type": query.query_type,
+            "response": response.choices[0].message.content,
+            "disclaimer": "⚠️ MEDICAL DISCLAIMER: This information is for educational purposes only and should not replace professional medical advice. Always consult with a qualified healthcare provider before taking any medicine or making changes to your medication regimen.",
+        }
+    
+    except Exception as e:
+        logger.error(f"Grok API error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error querying medical assistant: {str(e)}"
+        )
+
